@@ -12,7 +12,7 @@
 
 视频环境光扩展，为 YouTube 与哔哩哔哩打造连续的观看空间。
 
-[安装指南](docs/INSTALL.md)　 /　 [发行版本](https://github.com/Elys1an-Y1san/Halo/releases)　 /　 [观看视频](docs/media/halo-demo.mp4)　 /　 [验证记录](docs/QA.md)
+[安装指南](docs/INSTALL.md)　 /　 [发行版本](https://github.com/Elys1an-Y1san/Halo/releases)　 /　 [观看视频](https://elys1an-y1san.github.io/Halo/)　 /　 [验证记录](docs/QA.md)
 
 </div>
 
@@ -22,7 +22,7 @@
 
 <img src="docs/media/halo-demo.gif" width="100%" alt="真实浏览器演示：展开面板、开启扩散、关闭回收和收起面板" />
 
-*本地动态视频测试页的真实运行录制。GIF 展示完整交互；[MP4 视频](docs/media/halo-demo.mp4)保留更清晰的画质。*
+*本地动态视频测试页的真实运行录制。GIF 展示完整交互；[视频播放页](https://elys1an-y1san.github.io/Halo/)保留更清晰的画质。*
 
 ## 安静的面板，流动的画面
 
