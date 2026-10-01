@@ -1,0 +1,12 @@
+.DS_Store
+**/node_modules/
+**/.build/
+**/native-build/
+**/sourcemaps/
+**/*.map
+**/.env
+**/.env.*
+**/xcuserdata/
+**/*.xcuserstate
+*.zip
+*.log

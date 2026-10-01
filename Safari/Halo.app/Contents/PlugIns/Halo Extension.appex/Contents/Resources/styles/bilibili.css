@@ -1,0 +1,10 @@
+/* Scoped to a ready, enabled video so navigation/disable restores the site. */
+#bili-ambient-layer{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;contain:strict;background:#101218}
+#bili-ambient-layer[hidden],#bili-ambient-ui[hidden]{display:none!important}
+#bili-ambient-layer canvas{position:absolute;max-width:none!important;max-height:none!important;opacity:.85;transform:translateZ(0);mask-image:radial-gradient(ellipse at center,#000 35%,#000b 62%,transparent 75%)}
+html[data-bili-ambient]{background:#101218!important;--bg1:#20232dcc;--bg2:#272b36cc;--bg3:#303440;--text1:#f1f3f7;--text2:#bdc5d0;--text3:#a0a9b7;--text4:#808b9e;--line_regular:#ffffff20;--line_light:#ffffff16;--graph_bg_thin:#272b36cc;--graph_bg_regular:#313644cc}
+html[data-bili-ambient] body{background:transparent!important;isolation:isolate;color:var(--text1)}
+html[data-bili-ambient] #app,html[data-bili-ambient] #video-page-app,html[data-bili-ambient] #mirror-vdcon{background:transparent!important}
+html[data-bili-ambient] .bili-header__bar{background:#151921b8!important;backdrop-filter:blur(16px)}
+html[data-bili-ambient] :is(.video-info-title,.video-title,.up-name,.video-page-card-small .title){color:var(--text1)!important}
+html[data-bili-ambient] :is(.video-desc-container,.video-pod,.video-sections-content-list,.base-video-sections,.playlist-container){background:#181d2799!important;border-radius:8px}

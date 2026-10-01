@@ -1,0 +1,18 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const context = vm.createContext({});
+vm.runInContext(fs.readFileSync(__dirname + '/../src/scripts/bilibili-player.js', 'utf8'), context);
+const { supports, rank } = context.HaloBilibili;
+for (const path of ['/video/BVtest', '/bangumi/play/ep1', '/cheese/play/ss1', '/medialist/play/1', '/list/1', '/festival/test', '/blackboard/test', '/watchlater/']) assert(supports(new URL('https://www.bilibili.com' + path)), path);
+for (const url of ['https://player.bilibili.com/player.html?bvid=BVtest', 'https://player.bilibili.com/blackboard/html5mobileplayer.html', 'https://live.bilibili.com/123', 'https://live.bilibili.com/blanc/123']) assert(supports(new URL(url)), url);
+for (const url of ['https://www.bilibili.com/', 'https://www.bilibili.com/space/1', 'https://live.bilibili.com/', 'https://live.bilibili.com/p/eden/area-tags', 'https://bilibili.com.evil/video/BV1']) assert(!supports(new URL(url)), url);
+const rect = (width, height, left=0, top=0) => ({ width, height, left, top, right:left+width, bottom:top+height });
+const candidate = (overrides={}) => ({ rect:rect(640,360), viewportWidth:1200, viewportHeight:800, visible:true, connected:true, primary:true, playing:false, ready:true, ...overrides });
+assert.equal(rank(candidate({visible:false,rect:rect(2000,1000)})), -Infinity);
+assert.equal(rank(candidate({connected:false})), -Infinity);
+assert.equal(rank(candidate({rect:rect(0,0)})), -Infinity);
+assert(rank(candidate({playing:true})) > rank(candidate()));
+assert(rank(candidate({rect:rect(320,180),primary:false})) > rank(candidate({rect:rect(1280,720,0,2000),playing:true})));
+assert(rank(candidate()) > rank(candidate({primary:false,rect:rect(1000,600)})));
+console.log('PASS: 12 playback routes, 5 rejected routes, hidden/disconnected/zero-size/playing/floating/primary selection');

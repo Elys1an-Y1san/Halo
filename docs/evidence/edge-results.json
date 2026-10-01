@@ -1,0 +1,44 @@
+{
+  "reduced": [
+    {
+      "name": "reduced-motion skips page optics",
+      "pass": true
+    },
+    {
+      "name": "reduced-motion still applies real renderer",
+      "pass": true
+    },
+    {
+      "name": "reduced-motion disables immediately",
+      "pass": true
+    }
+  ],
+  "missing": [
+    {
+      "name": "missing video waits without false reveal",
+      "pass": true
+    },
+    {
+      "name": "readiness timeout clears wave",
+      "pass": true
+    },
+    {
+      "name": "timeout restores page material",
+      "pass": true
+    }
+  ],
+  "waiting-reverse": [
+    {
+      "name": "reverse before readiness cancels wave",
+      "pass": true
+    },
+    {
+      "name": "reverse before readiness leaves renderer off",
+      "pass": true
+    },
+    {
+      "name": "cancel leaves no transient page styles",
+      "pass": true
+    }
+  ]
+}

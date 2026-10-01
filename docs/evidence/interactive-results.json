@@ -1,0 +1,307 @@
+{
+  "panel": {
+    "geometry": {
+      "enabled": false,
+      "rect": {
+        "bottom": 260.9375,
+        "height": 24,
+        "left": 1167,
+        "right": 1207,
+        "top": 236.9375,
+        "width": 40,
+        "x": 1167,
+        "y": 236.9375
+      },
+      "transform": "none",
+      "wave": {
+        "originX": "1187",
+        "originY": "248.9375",
+        "radius": "1165",
+        "target": "false"
+      }
+    },
+    "results": [
+      {
+        "name": "opening animates opacity and transform",
+        "pass": true
+      },
+      {
+        "name": "opening leaves page dimensions unchanged",
+        "pass": true
+      },
+      {
+        "name": "opened panel is accessible",
+        "pass": true
+      },
+      {
+        "name": "floating trigger stays anchored",
+        "pass": true
+      },
+      {
+        "name": "horizontal panel scrolling is disabled",
+        "pass": true
+      },
+      {
+        "name": "switch pulse never exceeds panel width",
+        "pass": true
+      },
+      {
+        "name": "switch never changes panel space",
+        "pass": true
+      },
+      {
+        "name": "wave stays aligned to stable switch",
+        "pass": true
+      },
+      {
+        "name": "closing visibly animates before unmount",
+        "pass": true
+      },
+      {
+        "name": "closing removes focusability immediately",
+        "pass": true
+      },
+      {
+        "name": "close unmounts after animation",
+        "pass": true
+      },
+      {
+        "name": "rapid reopen cancels stale close",
+        "pass": true
+      },
+      {
+        "name": "reopen leaves document space unchanged",
+        "pass": true
+      },
+      {
+        "name": "wave settles unfinished panel entry",
+        "pass": true
+      }
+    ],
+    "shift": {
+      "after": [
+        347,
+        480
+      ],
+      "afterOrigin": {
+        "bottom": 260.9375,
+        "height": 24,
+        "left": 1167,
+        "right": 1207,
+        "top": 236.9375,
+        "width": 40,
+        "x": 1167,
+        "y": 236.9375
+      },
+      "dims": [
+        347,
+        480
+      ],
+      "maxShift": 0,
+      "origin": {
+        "bottom": 260.9375,
+        "height": 24,
+        "left": 1167,
+        "right": 1207,
+        "top": 236.9375,
+        "width": 40,
+        "x": 1167,
+        "y": 236.9375
+      },
+      "status": "",
+      "transform": "none"
+    }
+  },
+  "wave": [
+    {
+      "name": "page-wide wave exists",
+      "pass": true
+    },
+    {
+      "name": "wave begins at panel switch",
+      "pass": true
+    },
+    {
+      "name": "renderer has real circle clip",
+      "pass": true
+    },
+    {
+      "name": "text glyphs change spatially",
+      "pass": true
+    },
+    {
+      "name": "page material changes spatially",
+      "pass": true
+    },
+    {
+      "name": "wavefront advances",
+      "pass": true
+    },
+    {
+      "name": "video stays live",
+      "pass": true
+    },
+    {
+      "name": "wave never intercepts clicks",
+      "pass": true
+    },
+    {
+      "name": "reverse reuses one wave",
+      "pass": true
+    },
+    {
+      "name": "renderer remains active during exit",
+      "pass": true
+    },
+    {
+      "name": "exit removes all transient elements",
+      "pass": true
+    },
+    {
+      "name": "exit restores renderer off",
+      "pass": true
+    },
+    {
+      "name": "original inline material restored",
+      "pass": true
+    },
+    {
+      "name": "full activation finishes",
+      "pass": true
+    },
+    {
+      "name": "renderer clip restored",
+      "pass": true
+    },
+    {
+      "name": "no leftover page material overrides",
+      "pass": true
+    },
+    {
+      "name": "resize settles requested state",
+      "pass": true
+    }
+  ],
+  "youtube": [
+    {
+      "name": "bridge waits for renderer readiness",
+      "pass": true
+    },
+    {
+      "name": "bridge starts wave after acknowledgement",
+      "pass": true
+    },
+    {
+      "name": "live core renderer clipped",
+      "pass": true
+    },
+    {
+      "name": "theme background reveals spatially",
+      "pass": true
+    },
+    {
+      "name": "core video renderer stays live",
+      "pass": true
+    },
+    {
+      "name": "cleanup preserves newer site inline style",
+      "pass": true
+    },
+    {
+      "name": "activation cleanup restores live layer",
+      "pass": true
+    },
+    {
+      "name": "off keeps core active until frontier completes",
+      "pass": true
+    },
+    {
+      "name": "off is acknowledged by injected core",
+      "pass": true
+    },
+    {
+      "name": "zero mask held during async disable acknowledgement",
+      "pass": true
+    },
+    {
+      "name": "no transient page styles remain",
+      "pass": true
+    }
+  ],
+  "bilibili": [
+    {
+      "name": "Bilibili panel opens",
+      "pass": true
+    },
+    {
+      "name": "Bilibili shared visual state",
+      "pass": true
+    },
+    {
+      "name": "Bilibili preference saved",
+      "pass": true
+    },
+    {
+      "name": "real video sampled",
+      "pass": true
+    },
+    {
+      "name": "renderer tracks blur",
+      "pass": true
+    },
+    {
+      "name": "disabled removes video layer",
+      "pass": true
+    },
+    {
+      "name": "disabled updates switch effect state",
+      "pass": true
+    },
+    {
+      "name": "reset restores renderer",
+      "pass": true
+    },
+    {
+      "name": "close returns keyboard focus",
+      "pass": true
+    }
+  ],
+  "updates": [
+    {
+      "name": "lookup exposes busy state",
+      "pass": true
+    },
+    {
+      "name": "lookup compares numeric versions",
+      "pass": true
+    },
+    {
+      "name": "lookup exposes validated release link",
+      "pass": true
+    },
+    {
+      "name": "busy button deduplicates request",
+      "pass": true
+    },
+    {
+      "name": "lookup preserves panel space",
+      "pass": true
+    },
+    {
+      "name": "current version reports accurately",
+      "pass": true
+    },
+    {
+      "name": "rate limit gives retry guidance",
+      "pass": true
+    },
+    {
+      "name": "offline recovers controls",
+      "pass": true
+    },
+    {
+      "name": "untrusted release cannot create link",
+      "pass": true
+    }
+  ]
+}

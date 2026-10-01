@@ -1,0 +1,22 @@
+name: 问题反馈
+description: 提供可复现的播放器、界面或更新查询问题
+title: "[Bug] "
+body:
+  - type: input
+    id: environment
+    attributes:
+      label: 环境
+      placeholder: 系统、浏览器版本、插件版本
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤
+      description: 提供页面类型、操作步骤、预期和实际结果。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 截图或录屏

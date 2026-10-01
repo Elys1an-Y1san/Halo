@@ -1,0 +1,28 @@
+name: Checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Source/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: Source
+      - run: npm run build
+        working-directory: Source
+      - run: python3 package-halo.py
+        working-directory: Source
+      - run: node --test tests/update.test.cjs
+        working-directory: Source
+      - run: node tests/render-regression.cjs && node tests/bilibili-policy.test.cjs
+        working-directory: Source
+      - run: python3 tests/package-check.py
+        working-directory: Source
+      - run: npx eslint src/scripts/halo-{ui,controls,wave,update,background}.js src/scripts/bilibili.js
+        working-directory: Source
