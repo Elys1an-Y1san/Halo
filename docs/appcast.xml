@@ -4,15 +4,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>Halo Safari 更新</title>
     <item>
-      <title>Halo 1.0.4</title>
-      <description>修复原生更新器的动态库签名；光波加入宽幅漫反射，柔化扩散边缘。</description>
-      <sparkle:version>11</sparkle:version>
-      <sparkle:shortVersionString>1.0.4</sparkle:shortVersionString>
+      <title>Halo 1.0.5</title>
+      <description>修复快速调整参数被延迟保存覆盖；网页全屏时隐藏页内控件，退出后恢复入口。</description>
+      <sparkle:version>12</sparkle:version>
+      <sparkle:shortVersionString>1.0.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.4/Halo-Safari-1.0.4.tar.xz" sparkle:edSignature="K6kO6WHn8xVXNrOi0nP26m+8Gp35GRNO0mjbK5pmaqDexT1Ia1rE36/OKgPW+4EQKzJf80rQy5eBNmqGJ7n4Cw==" length="2712736" type="application/octet-stream"></enclosure>
+      <enclosure url="https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.5/Halo-Safari-1.0.5.tar.xz" sparkle:edSignature="0XTPfN3AsGSHWbhcoqUja2SohVbzgCwSWXRLhsjY4FCxjow7HeaDmPZzguzWt4BDXCogaFn7Nf3yitVYC5DbBA==" length="2712752" type="application/octet-stream"></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 78kneRsFOCw1WlnZZLrGCNsUWH76/yp6oKdCvXnYld4GYgfSl+V0w0+q2nvRcviXfq/xVHh/EuKlWH+wvkChCQ==
-length: 1099
+edSignature: toQP2tR75+1JRZ/7QeRR3Le/FLQLkEcecBIJ+G4FAScdf1Llyq4cCtESNit8WlhCRaiuPqaJ5qGrsx9GgEFeBQ==
+length: 1114
 -->
