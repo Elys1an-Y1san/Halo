@@ -14,7 +14,7 @@
 		</data>
 		<key>Resources/Base.lproj/Main.html</key>
 		<data>
-		SkWSfSK22lvpP8EnV9iVLyJ/aIU=
+		7mZ+EOfkvQE8Fsf8TbBDyKT7UVU=
 		</data>
 		<key>Resources/Base.lproj/Main.storyboardc/Info.plist</key>
 		<data>
@@ -60,7 +60,7 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			PzLWVspc1c/UjWfNjRpuAWWK+g8=
+			yHqxw3c7At4XMB9iDCKehRKfFeE=
 			</data>
 			<key>requirement</key>
 			<string>identifier "local.ambientlight.safari.Extension" and anchor apple generic and certificate leaf[subject.CN] = "Apple Development: elys1any1san@outlook.com (H3923Y78BK)" and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
@@ -83,7 +83,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			qjAQUNQTqPHifRZ0zBpc+na7bfBM542JlZDdp89kZW4=
+			/bTqI3LgHuqUoo7F6SA2DOzFtb3hXHKQoeBFU6S0TOY=
 			</data>
 		</dict>
 		<key>Resources/Base.lproj/Main.storyboardc/Info.plist</key>

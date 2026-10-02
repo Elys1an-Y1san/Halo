@@ -10,7 +10,7 @@
 		</data>
 		<key>Resources/credits.html</key>
 		<data>
-		WRcZjJb717xzTEuMdm5xB/P7dgc=
+		/NZQgCuydfKVvCeDTe+YxGZpgEc=
 		</data>
 		<key>Resources/images/donate.svg</key>
 		<data>
@@ -58,7 +58,7 @@
 		</data>
 		<key>Resources/manifest.json</key>
 		<data>
-		3X9tzkayvpn+4pvxAsE29CLiM8c=
+		GIsv6374L0CLmzDUiV3qwp/nGPA=
 		</data>
 		<key>Resources/options.html</key>
 		<data>
@@ -74,7 +74,7 @@
 		</data>
 		<key>Resources/scripts/bilibili.js</key>
 		<data>
-		rKh+LnBusoN0A+f/hyLqTLBVvmI=
+		vwM5S/AGGhUhq58jvCyuncfwf/w=
 		</data>
 		<key>Resources/scripts/content-main.js</key>
 		<data>
@@ -86,7 +86,7 @@
 		</data>
 		<key>Resources/scripts/halo-controls.js</key>
 		<data>
-		pnFIywUuTqZSHQeHhxUXr6VLREA=
+		B1qd76y/XwzHid+T3GcDtwkIEI4=
 		</data>
 		<key>Resources/scripts/halo-ui.js</key>
 		<data>
@@ -114,7 +114,7 @@
 		</data>
 		<key>Resources/styles/bilibili.css</key>
 		<data>
-		oe3i7f/eLtXjF8XxrR4L0YcUdPg=
+		6oVjoV+Jp2pWEPeVZ41z2B7VhX0=
 		</data>
 		<key>Resources/styles/content.css</key>
 		<data>
@@ -150,7 +150,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			QKhMrtSU9cFVGKSI+RYR9MsV6DQ0XQxaosyo0pWhB7U=
+			aLTM4bZf0y9u6tsPslyZepw7bUGK8VSOJMOUPVachOk=
 			</data>
 		</dict>
 		<key>Resources/images/donate.svg</key>
@@ -234,7 +234,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			TEgJ3IQiiwH4ZheDNCnUG97yhchBlwGWDDTaeI+3Z3k=
+			C3XUh5c87SKJeDNrJEdILFZ8WTlDDQlnoN7zfHn8KSA=
 			</data>
 		</dict>
 		<key>Resources/options.html</key>
@@ -262,7 +262,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			91UKtszuCyLW1ct5iY0JSVzuzUD/hhlTEU6K/m+UwH4=
+			Lhyg4PUiQJYc6v/dxSi2Pp3sx7yrwLYByw1M9t1MKHA=
 			</data>
 		</dict>
 		<key>Resources/scripts/content-main.js</key>
@@ -283,7 +283,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			xvxo1R90i+M4ZFYH8mE56ulRQa+3qsT9mBAbT1XrKiI=
+			oeFLy65fJHKUptDjlQ5gDE1iYF7N1vH4lyUh9T+IsII=
 			</data>
 		</dict>
 		<key>Resources/scripts/halo-ui.js</key>
@@ -332,7 +332,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			bAYL7GknQ/qNc6n6eJoXZy56AhkqsbFViZ8jFXQ3lr8=
+			gLQ3mRMrJIhpekYFb9iQhANESL+VJ6D/FTcGGmFQso4=
 			</data>
 		</dict>
 		<key>Resources/styles/content.css</key>

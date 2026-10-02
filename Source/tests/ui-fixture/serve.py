@@ -26,6 +26,8 @@ class Handler(SimpleHTTPRequestHandler):
             content = (ROOT / 'tests/ui-fixture/wave.html').read_text().replace('</body>','<script src="layout-repro.js"></script></body>')
         elif route == '/wave.html':
             content = (ROOT / 'tests/ui-fixture/wave.html').read_text()
+        elif route == '/parameter-race.html':
+            content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text().replace('<script src="scripts/bilibili.js"></script>', '<script src="parameter-race-storage.js"></script><script src="scripts/bilibili.js"></script>').replace('bilibili-test.js', 'parameter-race-test.js')
         elif route == '/bilibili-panel.html':
             content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text()
         elif route in ('/preview.html', '/test.html', '/update-test.html'):

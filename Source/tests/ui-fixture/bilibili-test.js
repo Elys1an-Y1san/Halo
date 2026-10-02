@@ -19,8 +19,16 @@ try {
  check('disabled updates switch effect state',$('power').dataset.enabled==='false');
  $('reset').click();await sleep(1950);
  check('reset restores renderer',!layer.hidden&&$('mode-label').textContent==='影院');
+ const host=document.querySelector('#bili-ambient-ui');
+ document.body.classList.add('webscreen-fix');await sleep(20);
+ check('web fullscreen hides floating controls immediately',host.hidden&&getComputedStyle(host).display==='none');
+ check('web fullscreen closes the open panel',$('panel').hidden&&$('toggle').getAttribute('aria-expanded')==='false');
+ document.body.classList.remove('webscreen-fix');await sleep(20);
+ check('leaving web fullscreen restores the trigger without reopening',!host.hidden&&getComputedStyle(host).display!=='none'&&$('panel').hidden);
+ $('toggle').click();await sleep(260);
  $('close').click();await sleep(260);
  check('close returns keyboard focus',root.activeElement===$('toggle')&&$('panel').hidden);
 } catch(error){results.push({name:error.message,pass:false});}
 document.body.dataset.testResults=JSON.stringify(results);
+const report=document.createElement('pre');report.textContent=results.map(result=>`${result.pass?'PASS':'FAIL'} ${result.name}`).join('\n');report.style.cssText='position:relative;z-index:3;background:#101218;color:#f2f3f4;padding:24px;font:13px/1.8 monospace';document.body.append(report);
 })();

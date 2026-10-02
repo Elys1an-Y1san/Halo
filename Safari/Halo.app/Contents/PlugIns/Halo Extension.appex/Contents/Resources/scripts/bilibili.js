@@ -3,6 +3,7 @@
   'use strict';
   const api = globalThis.browser || globalThis.chrome;
   const KEY = 'ambientlight-bilibili-v1';
+  const preferenceSource = crypto.randomUUID();
   const defaults = { enabled: true, blur: 60, spread: 100, brightness: 100 };
   let settings = { ...defaults };
   const clamp = (value, min, max, fallback) => Number.isFinite(Number(value))
@@ -46,6 +47,12 @@
   const status = $('status');
   const setStatus = (text) => { if (status.textContent !== text) status.textContent = text; };
   const setOpen = open => panelMotion.setOpen(open);
+  const syncHost = () => {
+    const hidden = !supported() || !!document.fullscreenElement || !!document.webkitFullscreenElement ||
+      document.body?.classList.contains('webscreen-fix');
+    if (hidden && panelMotion.isOpen) { setOpen(false); panelMotion.settle(); }
+    host.hidden = !!hidden;
+  };
   $('toggle').addEventListener('click', () => setOpen(!panelMotion.isOpen));
   $('close').addEventListener('click', () => { setOpen(false); $('toggle').focus(); });
   shadow.addEventListener('keydown', (event) => { if (event.key === 'Escape') { setOpen(false); $('toggle').focus(); } });
@@ -62,7 +69,7 @@
   const persist = () => {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
-      const snapshot = { ...settings };
+      const snapshot = { ...settings, __haloSource: preferenceSource };
       saveQueue = saveQueue.catch(() => {}).then(() => api.storage.local.set({ [KEY]: snapshot }))
         .catch(() => setStatus('设置保存失败，请重试'));
     }, 150);
@@ -157,7 +164,7 @@
     }
   };
   function update() {
-    host.hidden = !supported() || !!document.fullscreenElement || !!document.webkitFullscreenElement;
+    syncHost();
     cancelFrame(); geometry(); draw(); syncLayer(); scheduleFrame();
     if (!settings.enabled) setStatus('环境光已关闭');
     else if (video?.error) setStatus('播放器尚未提供可用画面');
@@ -207,7 +214,7 @@
     attach(next);
     // A reused media element may switch source without being replaced.
     if (video && observedSource !== (video.currentSrc || video.src)) { failedSource = null; drawn = false; update(); }
-    host.hidden = !!document.fullscreenElement || !!document.webkitFullscreenElement;
+    syncHost();
   };
   let discoverTimer;
   const observer = new MutationObserver(() => {
@@ -221,6 +228,8 @@
   };
   const storageListener = (changes, area) => {
     if (area !== 'local' || !changes[KEY]) return;
+    // This document already rendered its edit. A delayed save must not undo newer input.
+    if (changes[KEY].newValue?.__haloSource === preferenceSource) return;
     const previous = settings.enabled; settings = normalize(changes[KEY].newValue); updateControls(previous);
   };
   api.runtime.onMessage.addListener((message, sender, reply) => { if (message.type === 'halo-open') { discover(); if (!supported() || !video) { reply({ok:false}); return; } setOpen(true); reply({ok:true}); } });
@@ -231,6 +240,8 @@
     document.documentElement.append(host);
     renderControls();
     observer.observe(document.body, { childList: true, subtree: true });
+    // Web fullscreen only changes a body class; it does not fire fullscreenchange.
+    new MutationObserver(syncHost).observe(document.body, { attributes: true, attributeFilter: ['class'] });
     api.storage.onChanged.addListener(storageListener);
     document.addEventListener('visibilitychange', update);
     document.addEventListener('fullscreenchange', update);

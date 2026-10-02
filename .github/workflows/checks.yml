@@ -18,7 +18,7 @@ jobs:
         working-directory: Source
       - run: python3 package-halo.py
         working-directory: Source
-      - run: node --test tests/update.test.cjs tests/native-update.test.cjs
+      - run: node --test tests/update.test.cjs tests/native-update.test.cjs tests/preferences.test.cjs
         working-directory: Source
       - run: node tests/render-regression.cjs && node tests/bilibili-policy.test.cjs
         working-directory: Source

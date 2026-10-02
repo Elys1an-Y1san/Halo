@@ -3,6 +3,8 @@
   const api = globalThis.browser || globalThis.chrome;
   const popup = document.body?.dataset.halo === 'popup';
   const defaults = { enabled: true, blur: 60, spread: 100, brightness: 100 };
+  const preferenceSource = crypto.randomUUID();
+  let saveQueue = Promise.resolve();
   let site = 'youtube', settings = { ...defaults }, loadGeneration = 0;
   const key = () => site === 'bilibili' ? 'ambientlight-bilibili-v1' : 'halo-youtube-v1';
   const host = popup ? document.querySelector('#controls') : document.createElement('div');
@@ -52,8 +54,8 @@
     } finally { applying = false; }
   };
   const save = async () => {
-    const name = key(), value = { ...settings };
-    try { await api.storage.local.set({ [name]: value }); if (popup && name === key()) $('status').textContent = ''; }
+    const name = key(), value = { ...settings, __haloSource: preferenceSource };
+    try { saveQueue = saveQueue.catch(() => {}).then(() => api.storage.local.set({ [name]: value })); await saveQueue; if (popup && name === key()) $('status').textContent = ''; }
     catch { $('status').textContent = '保存失败，请重新打开扩展重试'; }
   };
   const updateControls = previous => {
@@ -73,7 +75,7 @@
     catch { settings = { ...defaults }; }
     wave?.setInitial(settings.enabled); render(); apply(); if (popup) $('status').textContent = '';
   };
-  api.storage.onChanged.addListener((changes, area) => { if (area !== 'local' || !changes[key()]) return; const previous = settings.enabled; settings = normalize(changes[key()].newValue); updateControls(previous); });
+  api.storage.onChanged.addListener((changes, area) => { if (area !== 'local' || !changes[key()]) return; if (changes[key()].newValue?.__haloSource === preferenceSource) return; const previous = settings.enabled; settings = normalize(changes[key()].newValue); updateControls(previous); });
   if (popup) {
     const select = document.querySelector('#site');
     select.onchange = () => { site = select.value; load(); };
