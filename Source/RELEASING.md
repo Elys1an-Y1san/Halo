@@ -2,7 +2,7 @@
 
 应用从 `docs/appcast.xml` 读取更新。发行包与 XML 都使用 Ed25519 签名，应用内的 `SUPublicEDKey` 对应这组密钥。私钥不在仓库中；当前维护者的密钥保存在本机钥匙串，账户为 `local.halo.update`。不要重新生成密钥来发布已有用户的更新。
 
-1. 同时增加扩展版本和原生 `MARKETING_VERSION`，增加原生 `CURRENT_PROJECT_VERSION`。运行构建和测试，确认 `Safari/Halo.app` 中的版本一致。
+1. 同时增加扩展版本和原生 `MARKETING_VERSION`，增加原生 `CURRENT_PROJECT_VERSION`。运行构建和测试，确认 `Safari/Halo.app` 中的版本一致。原生构建需要 Apple Development 或 Developer ID Application 证书，应用与框架必须使用同一身份；仅做 ad-hoc 签名会被运行时动态库校验拒绝。`build-macos.sh` 会选择本机证书，也可用 `HALO_SIGN_IDENTITY` 指定证书 SHA-1 标识。
 2. 从 [Sparkle 官方发行页](https://github.com/sparkle-project/Sparkle/releases/tag/2.10.0) 获取 2.10.0 工具。仓库内框架来自同一发行版。
 3. 为原生更新器生成归档。用户首次安装仍可使用仓库内的应用文件夹。
 

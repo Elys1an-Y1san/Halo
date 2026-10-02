@@ -43,9 +43,9 @@ class ViewController: NSViewController, WKNavigationDelegate, WKScriptMessageHan
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if (message.body as! String != "open-preferences") {
-            return;
-        }
+        guard message.frameInfo.isMainFrame, message.frameInfo.request.url?.isFileURL == true, let command = message.body as? String else { return }
+        if command == "check-updates" { (NSApp.delegate as? AppDelegate)?.checkForUpdatesFromUser(); return }
+        guard command == "open-preferences" else { return }
 
         SFSafariApplication.showPreferencesForExtension(withIdentifier: extensionBundleIdentifier) { error in
             DispatchQueue.main.async {

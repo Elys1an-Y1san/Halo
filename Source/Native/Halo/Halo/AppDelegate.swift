@@ -17,6 +17,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         pending = true
         if updater != nil { install() }
     }
+    func checkForUpdatesFromUser() { install() }
     private func install() {
         pending = false
         guard let updater, !updater.sessionInProgress else { driver.showUpdateInFocus(); return }

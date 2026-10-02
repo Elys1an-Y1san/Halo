@@ -45,7 +45,7 @@
 
 ## 开发
 
-需要 Node.js 22+、Python 3。构建 Safari 应用还需要 macOS 和 Xcode。
+需要 Node.js 22+、Python 3。构建 Safari 应用还需要 macOS、Xcode，以及本机可用的 Apple Development 或 Developer ID Application 签名证书。
 
 ```bash
 cd Source
@@ -62,6 +62,8 @@ python3 tests/ui-fixture/serve.py
 ```
 
 打开 `http://127.0.0.1:8765/wave.html` 查看演示。测试脚本位于 `Source/tests/`，更新签名步骤见[发布说明](Source/RELEASING.md)。
+
+Windows 安装器源码位于 `Source/Windows/`。在仓库根目录运行 `python3 Source/package-windows.py`，生成安装文件夹和 ZIP。
 
 ## 开源致谢
 

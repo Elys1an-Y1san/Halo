@@ -9,4 +9,5 @@
 **/xcuserdata/
 **/*.xcuserstate
 *.zip
+Releases/
 *.log

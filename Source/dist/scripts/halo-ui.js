@@ -119,7 +119,7 @@ footer { display: flex; align-items: center; gap: 8px; justify-content: space-be
     api.runtime.sendMessage({type:'halo-native-update-info'}).then(result=>{native=result?.supported===true;},()=>{});
     install.addEventListener('click',async()=>{
       install.disabled=true;button.disabled=true;status.textContent='正在启动安装…';
-      try {const result=await api.runtime.sendMessage({type:'halo-install-update'});status.textContent=result?.ok?'正在安装，完成后刷新页面':result?.code==='current'?'已是最新版本':'安装启动失败，请重试';}
+      try {const result=await api.runtime.sendMessage({type:'halo-install-update'});status.textContent=result?.ok?'更新器已启动，请查看原生窗口':result?.code==='current'?'已是最新版本':'安装启动失败，请重试';}
       catch {status.textContent='安装启动失败，请重试';}
       finally{install.disabled=false;button.disabled=false;}
     });

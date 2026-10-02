@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "映光 Halo",
   "description": "让画面，漫出边界。为 YouTube 与哔哩哔哩带来可调节的视频环境光。",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "Wessel Kroos",
   "icons": {
     "16": "images/icon-16.png",

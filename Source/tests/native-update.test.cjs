@@ -9,7 +9,7 @@ function setup({native = true, release = {ok: true, available: true}, fail = fal
   let listener;
   const runtime = {
     id: 'halo-test',
-    getManifest: () => ({version: '1.0.3', permissions: native ? ['nativeMessaging'] : ['storage']}),
+    getManifest: () => ({version: '1.0.4', permissions: native ? ['nativeMessaging'] : ['storage']}),
     onInstalled: {addListener() {}},
     onMessage: {addListener(fn) {listener = fn;}},
     async sendNativeMessage(app, message) {
@@ -41,7 +41,7 @@ test('installation rechecks latest version and forwards no page-supplied URL', a
   const {send, calls} = setup();
   assert.equal((await send({type: 'halo-install-update', url: 'https://evil.example/'})).ok, true);
   assert.deepEqual(JSON.parse(JSON.stringify(calls)), [
-    {version: '1.0.3', force: true},
+    {version: '1.0.4', force: true},
     {app: 'local.ambientlight.safari', message: {type: 'halo-install-update'}}
   ]);
 });

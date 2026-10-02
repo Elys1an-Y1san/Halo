@@ -26,3 +26,24 @@ jobs:
         working-directory: Source
       - run: npx eslint src/scripts/halo-{ui,controls,wave,update,background}.js src/scripts/bilibili.js
         working-directory: Source
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python Source/package-windows.py
+      - run: powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File Source/tests/windows-install.test.ps1
+      - name: Run the real Windows installer
+        shell: pwsh
+        run: |
+          $version = (Get-Content Chrome/manifest.json -Raw | ConvertFrom-Json).version
+          & powershell.exe -NoLogo -NoProfile -STA -ExecutionPolicy Bypass -File "Releases/Halo-Windows-Chrome-$version/Install-Halo.ps1" -Mode Standalone -VerifyOnly
+          if ($LASTEXITCODE -ne 0) { throw 'Windows installer failed' }
+      - name: Verify automatic extension loading
+        run: node Source/tests/windows-browser.test.cjs

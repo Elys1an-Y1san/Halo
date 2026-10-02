@@ -3,7 +3,7 @@ import json
 root=Path(__file__).resolve().parents[2]
 for directory in [root/'Chrome',root/'Source/Native/Halo/Halo Extension/Resources']:
  m=json.loads((directory/'manifest.json').read_text())
- assert m['name']=='映光 Halo' and m['version']=='1.0.3'
+ assert m['name']=='映光 Halo' and m['version']=='1.0.4'
  refs=[m['action']['default_popup'],m['options_ui']['page'],*m['icons'].values()]
  bg=m['background'];refs+=bg.get('scripts',[]) or [bg['service_worker']]
  for entry in m['content_scripts']:
