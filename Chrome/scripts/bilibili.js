@@ -33,6 +33,10 @@
 
   const host = document.createElement('div');
   host.id = 'bili-ambient-ui';
+  // Reserve the singleton before storage.get yields: Safari can inject twice
+  // while the first instance is still loading its preferences.
+  host.hidden = true;
+  document.documentElement.append(host);
   const shadow = host.attachShadow({ mode: 'open' });
   shadow.innerHTML = `<style>${HaloUI.css}</style>${HaloUI.markup}`;
   const $ = (id) => shadow.getElementById(id);
@@ -75,11 +79,15 @@
     }, 150);
   };
   for (const name of ['enabled', 'blur', 'spread', 'brightness']) {
-    $(name).addEventListener(name === 'enabled' ? 'change' : 'input', () => {
+    const onEdit = () => {
+      const value = name === 'enabled' ? $(name).checked : Number($(name).value);
+      if (settings[name] === value) return;
       const previous = settings.enabled;
-      settings[name] = name === 'enabled' ? $(name).checked : Number($(name).value);
+      settings[name] = value;
       updateControls(previous); persist();
-    });
+    };
+    $(name).addEventListener('change', onEdit);
+    if (name !== 'enabled') $(name).addEventListener('input', onEdit);
   }
   shadow.querySelectorAll('[data-preset]').forEach(button => button.addEventListener('click', () => { settings = { ...settings, ...HaloUI.presets[button.dataset.preset] }; renderControls(); update(); persist(); }));
   $('reset').addEventListener('click', () => { const previous = settings.enabled; settings = { ...defaults }; updateControls(previous); persist(); });

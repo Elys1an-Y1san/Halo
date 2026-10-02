@@ -1,7 +1,7 @@
 from pathlib import Path
-import json
+import json, plistlib
 root=Path(__file__).resolve().parents[2]
-for directory in [root/'Chrome',root/'Source/Native/Halo/Halo Extension/Resources']:
+for directory in [root/'Chrome',root/'Source/Native/Halo/Halo Extension/Resources',root/'Safari/Halo.app/Contents/PlugIns/Halo Extension.appex/Contents/Resources']:
  m=json.loads((directory/'manifest.json').read_text())
  assert m['name']=='映光 Halo' and m['version']==json.loads((root/'Source/package.json').read_text())['version']
  refs=[m['action']['default_popup'],m['options_ui']['page'],*m['icons'].values()]
@@ -19,6 +19,12 @@ from hashlib import sha256
 ui_files = ['options.html','credits.html','scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/halo-controls.js','scripts/bilibili.js','styles/halo-popup.css']
 for file in ui_files:
  expected = sha256((root/'Source/src'/file).read_bytes()).digest()
- for directory in [root/'Chrome',root/'Source/dist',root/'Source/Native/Halo/Halo Extension/Resources']:
+ for directory in [root/'Chrome',root/'Source/dist',root/'Source/Native/Halo/Halo Extension/Resources',root/'Safari/Halo.app/Contents/PlugIns/Halo Extension.appex/Contents/Resources']:
   assert sha256((directory/file).read_bytes()).digest() == expected, (directory,file)
 print('PASS: all packaged UI resources match source byte for byte')
+
+version=json.loads((root/'Source/package.json').read_text())['version']
+for bundle in [root/'Safari/Halo.app',root/'Safari/Halo.app/Contents/PlugIns/Halo Extension.appex']:
+ with (bundle/'Contents/Info.plist').open('rb') as file: info=plistlib.load(file)
+ assert info['CFBundleShortVersionString']==version,(bundle,info['CFBundleShortVersionString'])
+print('PASS: built native app and extension versions match the release')

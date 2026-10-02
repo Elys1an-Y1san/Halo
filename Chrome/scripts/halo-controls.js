@@ -2,6 +2,7 @@
   'use strict';
   const api = globalThis.browser || globalThis.chrome;
   const popup = document.body?.dataset.halo === 'popup';
+  if (!popup && document.getElementById('halo-youtube-ui')) return;
   const defaults = { enabled: true, blur: 60, spread: 100, brightness: 100 };
   const preferenceSource = crypto.randomUUID();
   let saveQueue = Promise.resolve();
@@ -63,16 +64,23 @@
     if (wave && previous !== settings.enabled) wave.toggle(settings.enabled, apply);
     else apply();
   };
-  for (const name of ['enabled', 'blur', 'spread', 'brightness']) $(name).addEventListener(name === 'enabled' ? 'change' : 'input', () => {
-    const previous = settings.enabled;
-    settings[name] = name === 'enabled' ? $(name).checked : Number($(name).value); updateControls(previous); save();
-  });
-  root.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { settings = { ...settings, ...HaloUI.presets[b.dataset.preset] }; render(); apply(); save(); });
-  $('reset').onclick = () => { const previous = settings.enabled; settings = { ...defaults }; updateControls(previous); save(); };
+  for (const name of ['enabled', 'blur', 'spread', 'brightness']) {
+    const onEdit = () => {
+      const value = name === 'enabled' ? $(name).checked : Number($(name).value);
+      if (settings[name] === value) return;
+      ++loadGeneration; // A late initial/site read must not undo a user edit.
+      const previous = settings.enabled;
+      settings[name] = value; updateControls(previous); save();
+    };
+    $(name).addEventListener('change', onEdit);
+    if (name !== 'enabled') $(name).addEventListener('input', onEdit);
+  }
+  root.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { ++loadGeneration; settings = { ...settings, ...HaloUI.presets[b.dataset.preset] }; render(); apply(); save(); });
+  $('reset').onclick = () => { ++loadGeneration; const previous = settings.enabled; settings = { ...defaults }; updateControls(previous); save(); };
   const load = async () => {
     const generation = ++loadGeneration, name = key();
     try { const saved = await api.storage.local.get(name); if (generation !== loadGeneration) return; settings = normalize(saved[name]); }
-    catch { settings = { ...defaults }; }
+    catch { if (generation !== loadGeneration) return; settings = { ...defaults }; }
     wave?.setInitial(settings.enabled); render(); apply(); if (popup) $('status').textContent = '';
   };
   api.storage.onChanged.addListener((changes, area) => { if (area !== 'local' || !changes[key()]) return; if (changes[key()].newValue?.__haloSource === preferenceSource) return; const previous = settings.enabled; settings = normalize(changes[key()].newValue); updateControls(previous); });

@@ -116,10 +116,15 @@ footer { display: flex; align-items: center; gap: 8px; justify-content: space-be
   bindUpdates(root, api) {
     const install=root.getElementById('install-update');
     let native=false;
-    api.runtime.sendMessage({type:'halo-native-update-info'}).then(result=>{native=result?.supported===true;},()=>{});
+    const send = message => new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(Error('background_timeout')), 12000);
+      Promise.resolve().then(() => api.runtime.sendMessage(message)).then(resolve, reject).finally(() => clearTimeout(timer));
+    });
+    // An unavailable background must never prevent the light controls from binding.
+    send({type:'halo-native-update-info'}).then(result=>{native=result?.supported===true;},()=>{});
     install.addEventListener('click',async()=>{
       install.disabled=true;button.disabled=true;status.textContent='正在启动安装…';
-      try {const result=await api.runtime.sendMessage({type:'halo-install-update'});status.textContent=result?.ok?'更新器已启动，请查看原生窗口':result?.code==='current'?'已是最新版本':'安装启动失败，请重试';}
+      try {const result=await send({type:'halo-install-update'});status.textContent=result?.ok?'更新器已启动，请查看原生窗口':result?.code==='current'?'已是最新版本':'安装启动失败，请重试';}
       catch {status.textContent='安装启动失败，请重试';}
       finally{install.disabled=false;button.disabled=false;}
     });
@@ -128,7 +133,7 @@ footer { display: flex; align-items: center; gap: 8px; justify-content: space-be
     button.addEventListener('click',async()=>{
       button.disabled=true;button.textContent='正在查询…';link.hidden=true;install.hidden=true;status.textContent='';
       try {
-        const result=await api.runtime.sendMessage({type:'halo-check-update',force:true});
+        const result=await send({type:'halo-check-update',force:true});
         if (!result?.ok) {
           status.textContent=result?.code==='no_release'?'暂无已发布版本':result?.code==='rate_limit'?'查询过于频繁，请稍后重试':'查询失败，请检查网络后重试';
           return;
@@ -136,7 +141,7 @@ footer { display: flex; align-items: center; gap: 8px; justify-content: space-be
         const url=new URL(result.url);
         if(url.origin!=='https://github.com'||!url.pathname.startsWith('/Elys1an-Y1san/Halo/releases/tag/'))throw Error('Invalid release link');
         status.textContent=result.available?`新版本 ${result.latest} 可用`:`已是最新版本 ${result.current}`;
-        if(result.available){link.href=url.href;link.hidden=native;install.hidden=!native;}
+        if(result.available){link.href=url.href;link.hidden=false;install.hidden=!native;}
       } catch { status.textContent='查询失败，请检查网络后重试'; }
       finally {button.disabled=false;button.textContent='检查更新';}
     });

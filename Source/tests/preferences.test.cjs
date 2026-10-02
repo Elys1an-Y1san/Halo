@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const {webcrypto} = require('node:crypto');
 const source = fs.readFileSync(new URL('../src/scripts/halo-controls.js', `file://${__filename}`),'utf8');
 const tick = () => new Promise(resolve => setImmediate(resolve));
-function setup() {
+function setup({get = async()=>({})} = {}) {
   const ids = new Map(), writes = [];
   let storageListener;
   function element(id) {
@@ -25,8 +25,8 @@ function setup() {
   element('setting-enabled').setAttribute('aria-checked','true');
   const root={getElementById:element,querySelectorAll:()=>[],addEventListener(){}};
   const host={attachShadow:()=>root};
-  const api={runtime:{getManifest:()=>({version:'test'}),onMessage:{addListener(){}}},storage:{local:{get:async()=>({}),set(value){return new Promise(resolve=>writes.push({value,resolve}));}},onChanged:{addListener(fn){storageListener=fn;}}}};
-  const document={body:{dataset:{}},documentElement:{append(){},hasAttribute:()=>true},createElement:()=>host,querySelector:()=>({}),getElementById:element,addEventListener(){}};
+  const api={runtime:{getManifest:()=>({version:'test'}),onMessage:{addListener(){}}},storage:{local:{get,set(value){return new Promise(resolve=>writes.push({value,resolve}));}},onChanged:{addListener(fn){storageListener=fn;}}}};
+  const document={body:{dataset:{}},documentElement:{append(){},hasAttribute:()=>true},createElement:()=>host,querySelector:()=>({}),getElementById:id=>id==='halo-youtube-ui'?null:element(id),addEventListener(){}};
   const context={chrome:api,document,crypto:webcrypto,Event:class{constructor(type){this.type=type;}},MutationObserver:class{observe(){}},setTimeout,
     HaloUI:{css:'',markup:'',bindUpdates(){},createPanel:()=>({isOpen:false,setOpen(){}}),sync(_,settings){for(const key of ['blur','spread','brightness'])element(key).value=String(settings[key]);element('enabled').checked=settings.enabled;}},
     HaloWave:{create(){return {renderingEnabled:true,setInitial(value){this.renderingEnabled=value;},toggle(value,commit){this.renderingEnabled=value;commit();}};}}};
@@ -56,4 +56,15 @@ test('changes from another panel still reach the UI and renderer',async()=>{
 test('existing settings without a source marker remain compatible',async()=>{
   const h=setup();await tick();h.notify({enabled:true,blur:40,spread:50,brightness:80});
   assert.equal(h.element('blur').value,'40');assert.equal(h.element('setting-brightness-range').value,80);
+});
+
+test('late initial storage read cannot undo a parameter edit', async()=>{
+ let resolve;const h=setup({get:()=>new Promise(r=>resolve=r)});
+ h.set('brightness',175);resolve({'halo-youtube-v1':{brightness:30}});await tick();
+ assert.equal(h.element('brightness').value,'175');assert.equal(h.element('setting-brightness-range').value,175);
+ h.writes[0].resolve();await tick();
+});
+test('change-only range input applies and saves exactly once',async()=>{
+ const h=setup();await tick();const input=h.element('brightness');input.value='160';input.handlers.change();input.handlers.input();await tick();
+ assert.equal(h.element('setting-brightness-range').value,160);assert.equal(h.writes.length,1);h.writes[0].resolve();await tick();assert.equal(h.writes.length,1);
 });

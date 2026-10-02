@@ -3,7 +3,7 @@
   'use strict';
   const repository = 'Elys1an-Y1san/Halo';
   const releasesURL = `https://github.com/${repository}/releases`;
-  const endpoint = `https://api.github.com/repos/${repository}/releases/latest`;
+  const endpoint = `https://api.github.com/repos/${repository}/releases?per_page=100`;
   const parseVersion = value => {
     const match = /^v?(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?$/.exec(String(value));
     return match ? match.slice(1).map(part => Number(part || 0)) : null;
@@ -20,16 +20,24 @@
     if (url.origin !== 'https://github.com' || !url.pathname.startsWith(`/${repository}/releases/tag/`)) throw new Error('invalid_release');
     return {version:value.tag_name.replace(/^v/,''),url:url.href};
   };
+  // "latest" is a publisher-selected release, not necessarily the highest version.
+  const selectRelease = values => {
+    if (!Array.isArray(values)) throw new Error('invalid_release');
+    const stable = values.filter(value => value && !value.draft && !value.prerelease && parseVersion(value.tag_name));
+    if (!stable.length) throw new Error('no_release');
+    return stable.map(validateRelease).sort((a,b) => compareVersions(b.version,a.version))[0];
+  };
   globalThis.HaloUpdates = {
     repository, releasesURL, endpoint, compareVersions,
     create({ storage, fetcher = (...args) => fetch(...args), now = () => Date.now(), timeoutMS = 8000 }) {
-      let pending;
+      const pending = new Map();
       const key='halo-release-cache-v1', ttl=6*60*60*1000;
       const result=(release,current,checkedAt,cached) => ({ok:true,current,latest:release.version,available:compareVersions(release.version,current)>0,url:release.url,checkedAt,cached});
       return {
         check(current, force=false) {
-          if (pending) return pending;
-          pending=(async()=>{
+          const requestKey = `${current}:${force}`;
+          if (pending.has(requestKey)) return pending.get(requestKey);
+          const request=(async()=>{
             if (!parseVersion(current)) return {ok:false,code:'invalid_release',url:releasesURL};
             if (!force) {
               try {
@@ -42,17 +50,18 @@
             }
             const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMS);
             try {
-              const response=await fetcher(endpoint,{headers:{Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},credentials:'omit',redirect:'error',signal:controller.signal});
+              const response=await fetcher(endpoint,{headers:{Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},credentials:'omit',redirect:'error',cache:'no-store',signal:controller.signal});
               if (!response.ok) throw new Error(response.status===404?'no_release':response.status===403||response.status===429?'rate_limit':'network');
-              const release=validateRelease(await response.json()),checkedAt=now();
+              const release=selectRelease(await response.json()),checkedAt=now();
               try { await storage.set({[key]:{...release,checkedAt}}); } catch { /* Successful network result remains usable without caching. */ }
               return result(release,current,checkedAt,false);
             } catch(error) {
               const code=['no_release','rate_limit','invalid_release'].includes(error.message)?error.message:'network';
               return {ok:false,code,url:releasesURL};
             } finally { clearTimeout(timer); }
-          })().finally(()=>{pending=null;});
-          return pending;
+          })().finally(()=>{pending.delete(requestKey);});
+          pending.set(requestKey,request);
+          return request;
         },
       };
     },

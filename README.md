@@ -34,7 +34,7 @@
 
 | 浏览器 | 安装文件 | 操作 |
 | :-- | :-- | :-- |
-| Windows Chrome | [ZIP 安装包](https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.5/Halo-Windows-Chrome-1.0.5.zip) | 解压后运行安装器，或按包内说明手动加载 |
+| Windows Chrome | [ZIP 安装包](https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.6/Halo-Windows-Chrome-1.0.6.zip) | 解压后运行安装器，或按包内说明手动加载 |
 | Chrome | [`Chrome/`](Chrome) | 开启开发者模式，加载此文件夹 |
 | Safari | [`Safari/Halo.app`](Safari) | 打开应用，在 Safari 设置中启用扩展 |
 

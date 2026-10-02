@@ -1,10 +1,14 @@
 """Serve source UI and isolated extension mocks for local, reproducible review."""
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
+import re
 ROOT = Path(__file__).resolve().parents[2]
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT / 'src'), **kwargs)
+    def end_headers(self):
+        self.send_header('Cache-Control', 'no-store')
+        super().end_headers()
     def do_GET(self):
         route = self.path.split('?')[0]
         fixtures = {'/mock.js': 'mock.js', '/test.js': 'test.js', '/bridge-core.js': 'bridge-core.js', '/bridge-test.js': 'bridge-test.js', '/design-test.js': 'design-test.js', '/bilibili-fixture.js': 'bilibili-fixture.js', '/bilibili-test.js': 'bilibili-test.js', '/wave-fixture.js': 'wave-fixture.js', '/wave-video.js': 'wave-video.js', '/wave-edge-test.js': 'wave-edge-test.js', '/wave-test.js': 'wave-test.js', '/youtube-wave-fixture.js': 'youtube-wave-fixture.js', '/youtube-wave-core.js': 'youtube-wave-core.js', '/youtube-wave-test.js': 'youtube-wave-test.js'}
@@ -26,6 +30,10 @@ class Handler(SimpleHTTPRequestHandler):
             content = (ROOT / 'tests/ui-fixture/wave.html').read_text().replace('</body>','<script src="layout-repro.js"></script></body>')
         elif route == '/wave.html':
             content = (ROOT / 'tests/ui-fixture/wave.html').read_text()
+        elif route == '/suite.html':
+            content = (ROOT / 'tests/ui-fixture/suite.html').read_text()
+        elif route == '/duplicate-init.html':
+            content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text().replace('<script src="scripts/bilibili.js"></script>', '<script src="duplicate-storage.js"></script><script src="scripts/bilibili.js"></script><script src="scripts/bilibili.js"></script>').replace('bilibili-test.js', 'duplicate-test.js')
         elif route == '/parameter-race.html':
             content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text().replace('<script src="scripts/bilibili.js"></script>', '<script src="parameter-race-storage.js"></script><script src="scripts/bilibili.js"></script>').replace('bilibili-test.js', 'parameter-race-test.js')
         elif route == '/bilibili-panel.html':
@@ -43,5 +51,6 @@ class Handler(SimpleHTTPRequestHandler):
                 content = content.replace('<body>', '<body style="margin:0;min-height:100vh;background:#0c0e11;color:#b7bbc3;font:14px/1.5 system-ui"><main style="padding:48px;max-width:900px;margin:auto"><p style="font-size:11px;letter-spacing:2px;color:#f3c780">HALO / LOCAL PREVIEW</p><h1 style="color:#f2f3f4;font-size:36px;font-weight:500">画面之外，也有光。</h1><p>页内控制面板，点击右下角「映光」展开</p></main>')
         else:
             super().do_GET(); return
+        content = re.sub(r'src="(scripts/[^"]+)"', lambda m: f'src="{m[1]}?v={(ROOT / "src" / m[1]).stat().st_mtime_ns}"', content)
         self.send_response(200); self.send_header('Content-Type', 'text/html; charset=utf-8'); self.end_headers(); self.wfile.write(content.encode())
 ThreadingHTTPServer(('127.0.0.1', 8765), Handler).serve_forever()
