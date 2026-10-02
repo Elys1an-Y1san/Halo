@@ -59,7 +59,7 @@
           const release = () => {
             observer?.disconnect(); clearTimeout(timeout);
             for (const record of state.surfaces) restorePaint(record);
-            for (const record of state.layers) restore(record.element, { 'clip-path': record.original });
+            for (const record of state.layers) restore(record.element, record.original);
             if (pendingCleanup === release) pendingCleanup = null;
           };
           try { state.commit(); } finally {
@@ -96,7 +96,7 @@
           if (!originRect) { enabled = target; commit(); return; }
           const size = viewport();
           const origin = { x: Math.min(size.width, Math.max(0, originRect.left + originRect.width / 2)), y: Math.min(size.height, Math.max(0, originRect.top + originRect.height / 2)) };
-          const reach = Math.max(...[[0,0],[size.width,0],[0,size.height],[size.width,size.height]].map(([x,y]) => Math.hypot(x-origin.x,y-origin.y))) + 36;
+          const reach = Math.max(...[[0,0],[size.width,0],[0,size.height],[size.width,size.height]].map(([x,y]) => Math.hypot(x-origin.x,y-origin.y))) + 260;
           const textElements = [...document.querySelectorAll('h1,h2,h3,h4,p,a,span,yt-formatted-string')].filter(element => !element.childElementCount && element.textContent.trim());
           const elements = [...new Set([document.documentElement, document.body, ...document.querySelectorAll(surfaceSelector), ...textElements])]
             .filter(element => element && element !== host && !element.closest('#halo-page-wave'));
@@ -148,7 +148,7 @@
           }
           commit();
           const captureLayers = state => {
-            state.layers = [...layers()].map(element => ({ element, rect: element.getBoundingClientRect(), original: {value: element.style.getPropertyValue('clip-path'), priority: element.style.getPropertyPriority('clip-path')} }));
+            state.layers = [...layers()].map(element => ({ element, rect: element.getBoundingClientRect(), original: Object.fromEntries(['clip-path','mask-image','-webkit-mask-image'].map(name=>[name,{value:element.style.getPropertyValue(name),priority:element.style.getPropertyPriority(name)}])) }));
           };
           const refreshGeometry = state => {
             const nextSize=viewport(), rect=visibleRect(trigger()) || visibleRect(host);
@@ -156,7 +156,7 @@
             const oldReach=state.reach;
             state.size=nextSize;
             state.origin={x:Math.min(nextSize.width,Math.max(0,rect.left+rect.width/2)),y:Math.min(nextSize.height,Math.max(0,rect.top+rect.height/2))};
-            state.reach=Math.max(...[[0,0],[nextSize.width,0],[0,nextSize.height],[nextSize.width,nextSize.height]].map(([x,y])=>Math.hypot(x-state.origin.x,y-state.origin.y)))+36;
+            state.reach=Math.max(...[[0,0],[nextSize.width,0],[0,nextSize.height],[nextSize.width,nextSize.height]].map(([x,y])=>Math.hypot(x-state.origin.x,y-state.origin.y)))+260;
             state.from=state.from/oldReach*state.reach;state.to=state.target?state.reach:0;state.radius=state.radius/oldReach*state.reach;
             for (const record of state.surfaces) record.rect=record.element.getBoundingClientRect();
             for (const record of state.layers) record.rect=record.element.getBoundingClientRect();
@@ -169,7 +169,10 @@
             // This is the actual live ambient renderer, not a decorative substitute.
             for (const record of state.layers) {
               const x = state.origin.x - record.rect.left, y = state.origin.y - record.rect.top;
-              record.element.style.setProperty('clip-path', `circle(${radius.toFixed(2)}px at ${x.toFixed(2)}px ${y.toFixed(2)}px)`, 'important');
+              record.element.style.setProperty('clip-path', `circle(${(radius+150).toFixed(2)}px at ${x.toFixed(2)}px ${y.toFixed(2)}px)`, 'important');
+              const mask=`radial-gradient(circle at ${x}px ${y}px, rgba(0,0,0,${Math.min(1,radius/150)}) ${Math.max(0,radius-150)}px, transparent ${radius+150}px)`;
+              record.element.style.setProperty('mask-image',mask,'important');
+              record.element.style.setProperty('-webkit-mask-image',mask,'important');
             }
             for (const record of state.surfaces) {
               const { element, rect, off, on, textOnly } = record;
@@ -177,11 +180,11 @@
               const x = state.origin.x - rect.left, y = state.origin.y - rect.top;
               if (off.image === 'none' && on.image === 'none' && off.background !== on.background) {
                 writePaint(record,'background-color','transparent');
-                writePaint(record,'background-image',`radial-gradient(circle at ${x}px ${y}px, ${on.background} ${Math.max(0, radius-16)}px, ${off.background} ${radius+16}px)`);
+                writePaint(record,'background-image',`radial-gradient(circle at ${x}px ${y}px, ${on.background} ${Math.max(0, radius-110)}px, ${off.background} ${radius+110}px)`);
               }
               if (off.color !== on.color) {
                 if (textOnly) {
-                  writePaint(record,'background-image',`radial-gradient(circle at ${x}px ${y}px, ${on.color} ${Math.max(0,radius-12)}px, ${off.color} ${radius+12}px)`);
+                  writePaint(record,'background-image',`radial-gradient(circle at ${x}px ${y}px, ${on.color} ${Math.max(0,radius-80)}px, ${off.color} ${radius+80}px)`);
                   writePaint(record,'background-clip','text');
                   writePaint(record,'-webkit-background-clip','text');
                   writePaint(record,'-webkit-text-fill-color','transparent');
@@ -189,7 +192,7 @@
                   // Containers keep their inherited baseline; leaf glyphs carry the spatial reveal.
                   const directText = record.directText;
                   const distance = Math.hypot(rect.left+rect.width/2-state.origin.x,rect.top+rect.height/2-state.origin.y);
-                  writePaint(record,'color',directText ? mix(off.color,on.color,Math.max(0,Math.min(1,(radius-distance)/34))) : off.color);
+                  writePaint(record,'color',directText ? mix(off.color,on.color,Math.max(0,Math.min(1,(radius-distance+80)/160))) : off.color);
                 }
               }
             }
@@ -228,38 +231,40 @@
         if (r<1) return;
         const envelope=Math.min(1,r/55,(state.reach-r)/60);
         ctx.globalCompositeOperation='lighter';
-        // Wide luminous caustic band with a warm centre and spectral edges.
-        const band=ctx.createRadialGradient(x,y,Math.max(0,r-110),x,y,r+54);
-        band.addColorStop(0,'rgba(241,157,73,0)'); band.addColorStop(.42,'rgba(241,157,73,.025)');
-        band.addColorStop(.65,'rgba(252,204,130,.21)'); band.addColorStop(.78,'rgba(134,204,236,.13)'); band.addColorStop(1,'rgba(134,204,236,0)');
-        ctx.globalAlpha=envelope;ctx.fillStyle=band;ctx.beginPath();ctx.arc(x,y,r+54,0,Math.PI*2);ctx.fill();
-        const rings=[{r,width:2.5,color:'#fff1c8',alpha:.95,glow:24},{r:r-7,width:4,color:'#efb575',alpha:.35,glow:22},{r:r+5,width:1.5,color:'#83d6ed',alpha:.5,glow:12},{r:r-15,width:1,color:'#de9bdd',alpha:.32,glow:8},{r:r*.9,width:1,color:'#f0c485',alpha:.14,glow:0},{r:r*.78,width:1,color:'#92b7d5',alpha:.1,glow:0}];
-        for (const ring of rings) {
-          if(ring.r<=0)continue;
-          ctx.globalAlpha=envelope*ring.alpha;ctx.strokeStyle=ring.color;ctx.lineWidth=ring.width;ctx.shadowColor=ring.color;ctx.shadowBlur=ring.glow;
-          ctx.beginPath();ctx.arc(x,y,ring.r,0,Math.PI*2);ctx.stroke();
+        // A broad low-contrast diffusion front; no full-circle strokes.
+        const band=ctx.createRadialGradient(x,y,Math.max(0,r-230),x,y,r+170);
+        band.addColorStop(0,'rgba(241,157,73,0)');band.addColorStop(.3,'rgba(241,157,73,.035)');
+        band.addColorStop(.55,'rgba(252,204,130,.09)');band.addColorStop(.78,'rgba(134,204,236,.045)');band.addColorStop(1,'rgba(134,204,236,0)');
+        ctx.globalAlpha=envelope;ctx.fillStyle=band;ctx.beginPath();ctx.arc(x,y,r+170,0,Math.PI*2);ctx.fill();
+        // Uneven overlapping pools scatter the light instead of outlining a boundary.
+        for(let i=0;i<13;i++){
+          const angle=i*2.3999632297+phase*.025,rr=r-50+Math.sin(i*7.1+phase)*65;
+          const px=x+Math.cos(angle)*rr,py=y+Math.sin(angle)*rr,size=120+(i%4)*34;
+          const glow=ctx.createRadialGradient(px,py,0,px,py,size);
+          const color=i%3===0?'128,198,219':i%3===1?'244,191,123':'184,155,208';
+          glow.addColorStop(0,`rgba(${color},.055)`);glow.addColorStop(.45,`rgba(${color},.028)`);glow.addColorStop(1,`rgba(${color},0)`);
+          ctx.fillStyle=glow;ctx.fillRect(px-size,py-size,size*2,size*2);
         }
-        ctx.shadowBlur=0;
-        // Two counter-moving ribbon bundles make the front feel like refracted light.
-        for (let ribbon=0;ribbon<9;ribbon++) {
-          const start=ribbon*2.3999632297+phase*(ribbon%2 ? .11 : -.08);
-          const rr=r-24-ribbon*4+Math.sin(phase*3+ribbon)*5;
+        ctx.shadowBlur=28;
+        for(let ribbon=0;ribbon<5;ribbon++){
+          const start=ribbon*2.3999632297+phase*.06,rr=r-70-ribbon*13;
           if(rr<1)continue;
-          ctx.strokeStyle=ribbon%3===0?'#99d9ef':ribbon%3===1?'#ffdca0':'#e2b4dc';
-          ctx.lineWidth=ribbon%3===0?2:1;ctx.globalAlpha=envelope*(.16+(ribbon%3)*.05);
-          ctx.beginPath();ctx.arc(x,y,rr,start,start+.55+(ribbon%4)*.18);ctx.stroke();
+          ctx.strokeStyle=ribbon%2?'#f3c780':'#89c6da';ctx.shadowColor=ctx.strokeStyle;
+          ctx.lineWidth=18;ctx.globalAlpha=envelope*.025;
+          ctx.beginPath();ctx.arc(x,y,rr,start,start+.4);ctx.stroke();
         }
+        ctx.shadowBlur=6;
         // Sparse tangential filaments and drifting glints, tied to this same radius.
-        for(let i=0;i<92;i++) {
+        for(let i=0;i<44;i++) {
           const angle=i*2.3999632297+phase*.028+r*.00018, jitter=Math.sin(i*73.17)*.5+.5;
           const rr=r-12-jitter*104, px=x+Math.cos(angle)*rr, py=y+Math.sin(angle)*rr;
           if(px < -20 || py < -20 || px>state.size.width+20 || py>state.size.height+20)continue;
           const length=4+jitter*24;
-          ctx.globalAlpha=envelope*(.18+jitter*.32);ctx.strokeStyle=i%3===0?'#92d8ee':'#ffe7bb';ctx.lineWidth=jitter>.7?1.4:.8;
+          ctx.globalAlpha=envelope*(.025+jitter*.06);ctx.strokeStyle=i%3===0?'#92d8ee':'#ffe7bb';ctx.lineWidth=jitter>.7?1.4:.8;
           ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px-Math.cos(angle)*length,py-Math.sin(angle)*length);ctx.stroke();
           if(jitter>.72) {
             ctx.fillStyle='#fff3dc';ctx.beginPath();ctx.arc(px,py,1.3,0,Math.PI*2);ctx.fill();
-            if(i%7===0){ctx.globalAlpha=envelope*.65;ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(px-4,py);ctx.lineTo(px+4,py);ctx.moveTo(px,py-4);ctx.lineTo(px,py+4);ctx.stroke();}
+            if(i%7===0){ctx.globalAlpha=envelope*.08;ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(px-4,py);ctx.lineTo(px+4,py);ctx.moveTo(px,py-4);ctx.lineTo(px,py+4);ctx.stroke();}
           }
         }
         const launch=Math.max(0,1-r/state.reach*6);

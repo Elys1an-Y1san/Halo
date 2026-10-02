@@ -2,7 +2,34 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>Halo Updater</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>halo-update</string>
+			</array>
+		</dict>
+	</array>
 	<key>SFSafariWebExtensionConverterVersion</key>
 	<string>27.1</string>
+	<key>SUEnableAutomaticChecks</key>
+	<false/>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://elys1an-y1san.github.io/Halo/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>AZZJvh9uo6drL/W4KK2LETndWn47E4fKw+YSnmchUY8=</string>
+	<key>SURequireSignedFeed</key>
+	<true/>
+	<key>SUSendProfileInfo</key>
+	<false/>
+	<key>SUSignedFeedFailureExpirationInterval</key>
+	<integer>0</integer>
+	<key>SUVerifyUpdateBeforeExtraction</key>
+	<true/>
 </dict>
 </plist>

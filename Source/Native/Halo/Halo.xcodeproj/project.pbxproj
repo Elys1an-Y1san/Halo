@@ -24,6 +24,8 @@
 		D06C15F5306CE35F0047C6AF /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = D06C15EF306CE35F0047C6AF /* manifest.json */; };
 		D06C15F6306CE35F0047C6AF /* options.html in Resources */ = {isa = PBXBuildFile; fileRef = D06C15F0306CE35F0047C6AF /* options.html */; };
 AA0000000000000000000001 /* credits.html in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002; };
+BB0000000000000000000001 = {isa = PBXBuildFile; fileRef = BB0000000000000000000002; };
+BB0000000000000000000003 = {isa = PBXBuildFile; fileRef = BB0000000000000000000002; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +48,7 @@ AA0000000000000000000001 /* credits.html in Resources */ = {isa = PBXBuildFile; 
 			);
 			name = "Embed Foundation Extensions";
 		};
+BB0000000000000000000004 = {isa = PBXCopyFilesBuildPhase; dstPath = ""; dstSubfolderSpec = 10; files = (BB0000000000000000000003,); name = "Embed Sparkle"; };
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -69,12 +72,13 @@ AA0000000000000000000001 /* credits.html in Resources */ = {isa = PBXBuildFile; 
 		D06C15EF306CE35F0047C6AF /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = Resources/manifest.json; sourceTree = "<group>"; };
 		D06C15F0306CE35F0047C6AF /* options.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = options.html; path = Resources/options.html; sourceTree = "<group>"; };
 AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = credits.html; path = Resources/credits.html; sourceTree = "<group>"; };
+BB0000000000000000000002 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = ../Frameworks/Sparkle.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D06C15BB306CE35E0047C6AF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
-			files = (
+			files = (BB0000000000000000000001,
 			);
 		};
 		D06C15D6306CE35F0047C6AF /* Frameworks */ = {
@@ -91,6 +95,7 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 				D06C15C0306CE35E0047C6AF /* Halo */,
 				D06C15DD306CE35F0047C6AF /* Halo Extension */,
 				D06C15BF306CE35E0047C6AF /* Products */,
+BB0000000000000000000002,
 			);
 			sourceTree = "<group>";
 		};
@@ -163,6 +168,7 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 				D06C15BB306CE35E0047C6AF /* Frameworks */,
 				D06C15BC306CE35E0047C6AF /* Resources */,
 				D06C15E6306CE35F0047C6AF /* Embed Foundation Extensions */,
+BB0000000000000000000004,
 			);
 			buildRules = (
 			);
@@ -419,7 +425,7 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 10;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -433,7 +439,7 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -453,7 +459,7 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 10;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -467,7 +473,7 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -490,7 +496,10 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+MACOSX_DEPLOYMENT_TARGET = 12.0;
+CODE_SIGN_ENTITLEMENTS = Halo/Halo.entitlements;
+FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
+				CURRENT_PROJECT_VERSION = 10;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -506,7 +515,7 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -532,7 +541,10 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+MACOSX_DEPLOYMENT_TARGET = 12.0;
+CODE_SIGN_ENTITLEMENTS = Halo/Halo.entitlements;
+FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
+				CURRENT_PROJECT_VERSION = 10;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -548,7 +560,7 @@ AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnown
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,

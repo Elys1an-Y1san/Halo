@@ -1,42 +1,24 @@
-//
-//  SafariWebExtensionHandler.swift
-//  Halo Extension
-//
-//  Created by Elysian Y1san on 9/30/26.
-//
-
 import SafariServices
-import os.log
+import AppKit
 
 class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
-
     func beginRequest(with context: NSExtensionContext) {
         let request = context.inputItems.first as? NSExtensionItem
-
-        let profile: UUID?
-        if #available(iOS 17.0, macOS 14.0, *) {
-            profile = request?.userInfo?[SFExtensionProfileKey] as? UUID
-        } else {
-            profile = request?.userInfo?["profile"] as? UUID
+        let message = request?.userInfo?[SFExtensionMessageKey] as? [String: Any]
+        func finish(_ value: [String: Any]) {
+            let response = NSExtensionItem()
+            response.userInfo = [SFExtensionMessageKey: value]
+            context.completeRequest(returningItems: [response])
         }
-
-        let message: Any?
-        if #available(iOS 15.0, macOS 11.0, *) {
-            message = request?.userInfo?[SFExtensionMessageKey]
-        } else {
-            message = request?.userInfo?["message"]
+        guard let type = message?["type"] as? String else { finish(["ok": false]); return }
+        if type == "halo-update-info" { finish(["ok": true, "supported": true]); return }
+        guard type == "halo-install-update" else { finish(["ok": false]); return }
+        // Only the containing app and a fixed command can be launched, never a page-supplied path.
+        let app = Bundle.main.bundleURL.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        DispatchQueue.main.async {
+            NSWorkspace.shared.open([URL(string: "halo-update://install")!], withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration()) { _, error in
+                finish(["ok": error == nil, "code": error == nil ? "started" : "native_failed"])
+            }
         }
-
-        os_log(.default, "Received message from browser.runtime.sendNativeMessage: %@ (profile: %@)", String(describing: message), profile?.uuidString ?? "none")
-
-        let response = NSExtensionItem()
-        if #available(iOS 15.0, macOS 11.0, *) {
-            response.userInfo = [ SFExtensionMessageKey: [ "echo": message ] ]
-        } else {
-            response.userInfo = [ "message": [ "echo": message ] ]
-        }
-
-        context.completeRequest(returningItems: [ response ], completionHandler: nil)
     }
-
 }

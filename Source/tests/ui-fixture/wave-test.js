@@ -10,6 +10,7 @@ try{
  const trigger=expectedOrigin;
  check('wave begins at panel switch',Math.abs(Number(wave.dataset.originX)-(trigger.left+trigger.width/2))<1&&Math.abs(Number(wave.dataset.originY)-(trigger.top+trigger.height/2))<1);
  check('renderer has real circle clip',getComputedStyle(layer).clipPath.startsWith('circle(')&&Number(wave.dataset.radius)>0);
+ check('live renderer has feathered reveal',getComputedStyle(layer).maskImage.includes('radial-gradient'));
  check('text glyphs change spatially',document.querySelector('.video-info-title').style.backgroundImage.includes('radial-gradient')&&document.querySelector('.video-info-title').style.webkitTextFillColor==='transparent');
  check('page material changes spatially',document.getElementById('app').style.backgroundImage.includes('radial-gradient'));
  const firstRadius=Number(wave.dataset.radius),frame=document.body.dataset.sourceFrame;
@@ -26,7 +27,7 @@ try{
  check('original inline material restored',document.getElementById('app').style.backgroundImage==='');
  $('enabled').click();await sleep(2050);
  check('full activation finishes',!layer.hidden&&!document.getElementById('halo-page-wave'));
- check('renderer clip restored',layer.style.clipPath==='');
+ check('renderer clip and masks restored',layer.style.clipPath===''&&layer.style.maskImage==='');
  check('no leftover page material overrides',document.body.style.backgroundImage===''&&document.documentElement.style.backgroundImage==='');
  $('enabled').click();await sleep(140);window.dispatchEvent(new Event('resize'));await sleep(50);
  check('resize settles requested state',layer.hidden&&!document.getElementById('halo-page-wave'));

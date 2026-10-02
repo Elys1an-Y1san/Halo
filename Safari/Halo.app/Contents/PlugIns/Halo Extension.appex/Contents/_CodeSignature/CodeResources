@@ -10,7 +10,7 @@
 		</data>
 		<key>Resources/credits.html</key>
 		<data>
-		MtToq9f+ZMygtkcQqUL+TMpybBQ=
+		PbI/5wSY3omDSd8CwhyrRNg+0+Y=
 		</data>
 		<key>Resources/images/donate.svg</key>
 		<data>
@@ -58,7 +58,7 @@
 		</data>
 		<key>Resources/manifest.json</key>
 		<data>
-		B1b+KKjJ2viJ/quEG18gJPsB7iA=
+		2oXJoLLcHvOuSEEnXigkzsxKaRQ=
 		</data>
 		<key>Resources/options.html</key>
 		<data>
@@ -66,7 +66,7 @@
 		</data>
 		<key>Resources/scripts/background.js</key>
 		<data>
-		974/2EzVuokCWc9YpM73PfD+QHw=
+		WqPcpfvrxXjD2T/h3cULZ1keYiw=
 		</data>
 		<key>Resources/scripts/bilibili-player.js</key>
 		<data>
@@ -90,7 +90,7 @@
 		</data>
 		<key>Resources/scripts/halo-ui.js</key>
 		<data>
-		qU2YVrf67rMvyeDZAS2lrNiAcbk=
+		NBMB5pvxd30HfeWtJYoOQcWmygU=
 		</data>
 		<key>Resources/scripts/halo-update.js</key>
 		<data>
@@ -98,7 +98,7 @@
 		</data>
 		<key>Resources/scripts/halo-wave.js</key>
 		<data>
-		Yhw+FDadE/7CHXor+jOV7dQH8nM=
+		LTTPyA4UUSKRdE5xbKERykgbR34=
 		</data>
 		<key>Resources/scripts/injected.js</key>
 		<data>
@@ -150,7 +150,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			jeBlmKtI8k7Y+Xzf5ZAyM8ehqRcdLeFyB+CzKptLjb4=
+			FQO2KXfD2JnKevHVoddhzjZTpS9XdA+m2ooL1mvReJo=
 			</data>
 		</dict>
 		<key>Resources/images/donate.svg</key>
@@ -234,7 +234,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			Rfjmsj45Y4f2LbJ0CxpTqsnexcxlOryLUiXFrSuq2Ec=
+			Mnqzycb3gkTNE/jETuFIJa0qULClz68iuiVhxMG8iQo=
 			</data>
 		</dict>
 		<key>Resources/options.html</key>
@@ -248,7 +248,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			JFm+3Aejyf8eF2XlzWf9AKTdT2N1qgLyWtForHO9l1U=
+			QD/ar/whaOBmpJdvziIm1NWjENzl9bcg8P6Q4n4ZGXE=
 			</data>
 		</dict>
 		<key>Resources/scripts/bilibili-player.js</key>
@@ -290,7 +290,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			E1aM4tW6GERICJRoSrOFbHugD8w1Y1x8cV/e4eDWnNM=
+			dmdOW26rb4f69nA8fJMXE/ncwrmA9slr8TpH4sx2LkE=
 			</data>
 		</dict>
 		<key>Resources/scripts/halo-update.js</key>
@@ -304,7 +304,7 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			xFcaYRe0+HJM+n8iqwUlntN+5x7CpBwUgzKkkSUgJJ4=
+			eNOraTWKmzsjz049JsitSIpFn83ubXSy1p1us/anZrA=
 			</data>
 		</dict>
 		<key>Resources/scripts/injected.js</key>

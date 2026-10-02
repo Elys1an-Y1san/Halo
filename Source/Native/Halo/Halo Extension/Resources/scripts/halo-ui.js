@@ -77,6 +77,7 @@ footer { display: flex; align-items: center; gap: 8px; justify-content: space-be
 .update-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; min-height: 32px; }
 #check-update { border: 0; border-radius: 4px; background: transparent; padding: 0 3px; min-height: 32px; color: var(--muted); font-size: 11px; }
 #check-update:hover { color: var(--accent); }
+#install-update { border:0; padding:0 3px; min-height:32px; color:var(--accent); background:transparent; font-size:11px; }
 #release-link { color: var(--accent); text-decoration: none; font-size: 11px; min-height: 32px; display: flex; align-items: center; }
 #version { color: var(--muted); font: 10px/1.5 ui-monospace,monospace; }
 #update-status { margin: 0; height: 17px; line-height: 17px; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -107,16 +108,25 @@ footer { display: flex; align-items: center; gap: 8px; justify-content: space-be
     <div class="range-row"><label class="range-label" for="brightness"><span>亮度<small>LIGHT</small></span><output id="brightness-value" for="brightness"></output></label><input id="brightness" aria-label="环境光亮度" type="range" min="20" max="180" step="1"></div>
   </div>
   <footer><p id="status" role="status" aria-live="polite"></p><button id="reset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg>重置</button></footer>
-  <div class="update-row"><button id="check-update">检查更新</button><a id="release-link" hidden target="_blank" rel="noopener noreferrer">查看新版 ↗</a><span id="version"></span></div>
+  <div class="update-row"><button id="check-update">检查更新</button><a id="release-link" hidden target="_blank" rel="noopener noreferrer">查看新版 ↗</a><button id="install-update" hidden>安装更新</button><span id="version"></span></div>
   <p id="update-status" role="status" aria-live="polite"></p>
 </section>
 <button id="toggle" aria-label="映光设置" aria-expanded="false" aria-controls="panel"><span class="brand-mark" aria-hidden="true"></span>映光</button>
 `,
   bindUpdates(root, api) {
+    const install=root.getElementById('install-update');
+    let native=false;
+    api.runtime.sendMessage({type:'halo-native-update-info'}).then(result=>{native=result?.supported===true;},()=>{});
+    install.addEventListener('click',async()=>{
+      install.disabled=true;button.disabled=true;status.textContent='正在启动安装…';
+      try {const result=await api.runtime.sendMessage({type:'halo-install-update'});status.textContent=result?.ok?'正在安装，完成后刷新页面':result?.code==='current'?'已是最新版本':'安装启动失败，请重试';}
+      catch {status.textContent='安装启动失败，请重试';}
+      finally{install.disabled=false;button.disabled=false;}
+    });
     const button=root.getElementById('check-update'),status=root.getElementById('update-status'),link=root.getElementById('release-link');
-    root.getElementById('version').textContent=`v${api.runtime.getManifest?.().version || '1.0.2'}`;
+    root.getElementById('version').textContent=`v${api.runtime.getManifest?.().version || '1.0.3'}`;
     button.addEventListener('click',async()=>{
-      button.disabled=true;button.textContent='正在查询…';link.hidden=true;status.textContent='';
+      button.disabled=true;button.textContent='正在查询…';link.hidden=true;install.hidden=true;status.textContent='';
       try {
         const result=await api.runtime.sendMessage({type:'halo-check-update',force:true});
         if (!result?.ok) {
@@ -126,7 +136,7 @@ footer { display: flex; align-items: center; gap: 8px; justify-content: space-be
         const url=new URL(result.url);
         if(url.origin!=='https://github.com'||!url.pathname.startsWith('/Elys1an-Y1san/Halo/releases/tag/'))throw Error('Invalid release link');
         status.textContent=result.available?`新版本 ${result.latest} 可用`:`已是最新版本 ${result.current}`;
-        if(result.available){link.href=url.href;link.hidden=false;}
+        if(result.available){link.href=url.href;link.hidden=native;install.hidden=!native;}
       } catch { status.textContent='查询失败，请检查网络后重试'; }
       finally {button.disabled=false;button.textContent='检查更新';}
     });
