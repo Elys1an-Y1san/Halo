@@ -6,7 +6,7 @@ import shutil
 import zipfile
 
 root = Path(__file__).resolve().parent.parent
-version = json.loads((root / 'Chrome/manifest.json').read_text())['version']
+version = json.loads((root / 'Chrome/manifest.json').read_text(encoding='utf-8'))['version']
 output = root / 'Releases' / f'Halo-Windows-Chrome-{version}'
 if output.exists():
     shutil.rmtree(output)
@@ -20,7 +20,7 @@ for source in sorted((root / 'Chrome').rglob('*')):
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(source.read_bytes())
     files.append({'path': relative.as_posix(), 'sha256': hashlib.sha256(target.read_bytes()).hexdigest()})
-(output / 'payload.json').write_text(json.dumps({'product': 'Halo', 'version': version, 'files': files}, indent=2) + '\n')
+(output / 'payload.json').write_text(json.dumps({'product': 'Halo', 'version': version, 'files': files}, indent=2) + '\n', encoding='utf-8')
 for source in (root / 'Source/Windows').iterdir():
     if not source.is_file():
         continue
@@ -28,7 +28,7 @@ for source in (root / 'Source/Windows').iterdir():
     if source.suffix in ('.ps1', '.psm1'):
         target.write_bytes(source.read_text(encoding='utf-8-sig').replace('\r\n', '\n').replace('\n', '\r\n').encode('utf-8-sig'))
     elif source.suffix == '.cmd':
-        target.write_bytes(source.read_text().replace('\r\n', '\n').replace('\n', '\r\n').encode('ascii'))
+        target.write_bytes(source.read_text(encoding='utf-8').replace('\r\n', '\n').replace('\n', '\r\n').encode('ascii'))
     else:
         shutil.copyfile(source, target)
 shutil.copyfile(root / 'LICENSE', output / 'LICENSE')
@@ -38,6 +38,6 @@ with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as bun
         if source.is_file():
             bundle.write(source, source.relative_to(output.parent))
 digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-(output.parent / (archive.name + '.sha256')).write_text(f'{digest}  {archive.name}\n')
+(output.parent / (archive.name + '.sha256')).write_text(f'{digest}  {archive.name}\n', encoding='ascii')
 print(archive)
 print(f'{len(files)} extension files, {archive.stat().st_size} bytes, SHA256 {digest}')
