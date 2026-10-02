@@ -9,6 +9,12 @@
 
 更新时，用新版 `Chrome` 替换原文件夹，在扩展管理页点击重新加载，刷新视频页。保留扩展安装路径以保留本地设置。
 
+## Windows 安装包
+
+从[发行页](https://github.com/Elys1an-Y1san/Halo/releases/latest)下载 Windows ZIP，完整解压后打开包内的「开始使用.md」。可以使用独立浏览器安装器，也可以部署后在已有 Chrome 中加载。
+
+脚本无法运行时，直接打开 `chrome://extensions/`，启用「开发者模式」，选择「加载已解压的扩展程序」，选中解压目录里的 `Chrome` 文件夹。安装后保留该文件夹；更新时覆盖同一路径并重新加载扩展。
+
 ## Safari
 
 1. 将 `Safari/Halo.app` 放入「应用程序」，打开应用。
