@@ -1,4 +1,4 @@
-﻿param([ValidateSet('Standalone','Existing')][string]$Mode = 'Standalone', [switch]$VerifyOnly)
+﻿param([ValidateSet('Standalone','Existing')][string]$Mode = 'Standalone')
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 try {
@@ -94,12 +94,11 @@ try {
     $shortcut.IconLocation = $chrome + ',0'
     $shortcut.Save()
     Write-Host 'Installed. Use the Halo desktop shortcut to open this browser.' -ForegroundColor Green
-    $launchArguments = $arguments
-    if ($VerifyOnly) { $launchArguments = $arguments.Replace(' https://www.bilibili.com/', ' about:blank') + ' --headless=new --remote-debugging-address=127.0.0.1 --remote-debugging-port=0' }
-    Start-Process -FilePath $chrome -ArgumentList $launchArguments
+    Start-Process -FilePath $chrome -ArgumentList $arguments
 } catch {
     Write-Host ('Installation failed: ' + $_.Exception.Message) -ForegroundColor Red
-    Write-Host 'No system-wide Chrome policies or browser security settings were changed.'
+    Write-Host 'You can install manually: read the Manual installation section in the guide included in this folder.'
+    Write-Host 'Open chrome://extensions/, enable Developer mode, choose Load unpacked, and select the Chrome folder beside this script.'
     Read-Host 'Press Enter to close' | Out-Null
     exit 1
 }
