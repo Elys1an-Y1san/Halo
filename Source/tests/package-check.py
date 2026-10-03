@@ -1,7 +1,7 @@
 from pathlib import Path
 import json, plistlib
 root=Path(__file__).resolve().parents[2]
-for directory in [root/'Chrome',root/'Source/Native/Halo/Halo Extension/Resources',root/'Safari/Halo.app/Contents/PlugIns/Halo Extension.appex/Contents/Resources']:
+for directory in [root/'Firefox',root/'Chrome',root/'Source/Native/Halo/Halo Extension/Resources',root/'Safari/Halo.app/Contents/PlugIns/Halo Extension.appex/Contents/Resources']:
  m=json.loads((directory/'manifest.json').read_text())
  assert m['name']=='映光 Halo' and m['version']==json.loads((root/'Source/package.json').read_text())['version']
  refs=[m['action']['default_popup'],m['options_ui']['page'],*m['icons'].values()]
@@ -13,13 +13,13 @@ for directory in [root/'Chrome',root/'Source/Native/Halo/Halo Extension/Resource
  assert set(m['host_permissions'])=={'https://www.youtube.com/*','https://www.bilibili.com/*','https://player.bilibili.com/*','https://live.bilibili.com/*','https://api.github.com/*'}
  assert 'service_worker' in bg if directory.name=='Chrome' else 'scripts' in bg
  print('PASS',directory.name,len(refs),'manifest resources')
-print('PASS: Safari/Chrome manifests, resources, license and host scope')
+print('PASS: Safari/Chrome/Firefox manifests, resources, license and host scope')
 
 from hashlib import sha256
 ui_files = ['options.html','credits.html','scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/halo-controls.js','scripts/bilibili.js','styles/halo-popup.css']
 for file in ui_files:
  expected = sha256((root/'Source/src'/file).read_bytes()).digest()
- for directory in [root/'Chrome',root/'Source/dist',root/'Source/Native/Halo/Halo Extension/Resources',root/'Safari/Halo.app/Contents/PlugIns/Halo Extension.appex/Contents/Resources']:
+ for directory in [root/'Firefox',root/'Chrome',root/'Source/dist',root/'Source/Native/Halo/Halo Extension/Resources',root/'Safari/Halo.app/Contents/PlugIns/Halo Extension.appex/Contents/Resources']:
   assert sha256((directory/file).read_bytes()).digest() == expected, (directory,file)
 print('PASS: all packaged UI resources match source byte for byte')
 
@@ -28,3 +28,14 @@ for bundle in [root/'Safari/Halo.app',root/'Safari/Halo.app/Contents/PlugIns/Hal
  with (bundle/'Contents/Info.plist').open('rb') as file: info=plistlib.load(file)
  assert info['CFBundleShortVersionString']==version,(bundle,info['CFBundleShortVersionString'])
 print('PASS: built native app and extension versions match the release')
+
+
+# Verify the delivered archive, not only the unpacked development folder.
+from zipfile import ZipFile
+archive = root/'Releases'/version/f'Halo-Firefox-{version}-unsigned.zip'
+with ZipFile(archive) as package:
+ files = {str(p.relative_to(root/'Firefox')): p for p in (root/'Firefox').rglob('*') if p.is_file()}
+ assert set(package.namelist()) == set(files), 'Firefox ZIP has missing or stale files'
+ for name, path in files.items():
+  assert package.read(name) == path.read_bytes(), name
+print('PASS: unsigned Firefox ZIP matches generated folder byte for byte')

@@ -36,7 +36,10 @@
 | :-- | :-- | :-- |
 | Windows Chrome | [ZIP 安装包](https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.6/Halo-Windows-Chrome-1.0.6.zip) | 解压后运行安装器，或按包内说明手动加载 |
 | Chrome | [`Chrome/`](Chrome) | 开启开发者模式，加载此文件夹 |
+| Firefox 128+（桌面版） | [未签名 ZIP](https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.6/Halo-Firefox-1.0.6-unsigned.zip) / [`Firefox/`](Firefox) | 临时加载 `manifest.json`，永久安装需要签名 |
 | Safari | [`Safari/Halo.app`](Safari) | 打开应用，在 Safari 设置中启用扩展 |
+
+Firefox 当前提供未签名测试包，实际浏览器运行验收尚未完成，详见[验证记录](docs/FIREFOX-VALIDATION.md)。
 
 文件夹内已包含构建产物。Safari 应用使用本地开发签名，首次启用需要开发设置，具体步骤见[安装指南](docs/INSTALL.md)。
 
@@ -50,7 +53,8 @@
 
 ```bash
 cd Source
-./build-chrome.sh    # 生成 ../Chrome
+./build-chrome.sh    # 生成 ../Chrome 和 ../Firefox
+./build-firefox.sh   # 生成 ../Firefox 和未签名 ZIP（也同步其他浏览器资源）
 ./build-macos.sh     # 同时生成 ../Safari/Halo.app
 ```
 

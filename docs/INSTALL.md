@@ -9,6 +9,17 @@
 
 更新时，用新版 `Chrome` 替换原文件夹，在扩展管理页点击重新加载，刷新视频页。保留扩展安装路径以保留本地设置。
 
+## Firefox（桌面版 128 及以上）
+
+1. 找到仓库根目录的 `Firefox` 文件夹，或解压 `Halo-Firefox-1.0.6-unsigned.zip`。
+2. 打开 `about:debugging#/runtime/this-firefox`，点击「临时载入附加组件」。
+3. 选择文件夹内的 `manifest.json`。
+4. 在扩展管理界面允许访问 YouTube 与哔哩哔哩，刷新视频页后打开右下角「映光」。
+
+当前提供的是**未签名测试包**，重启浏览器后需要重新临时加载。不要把 ZIP 改名为 XPI 并期待永久安装；正式版永久安装需要 Mozilla 签名的 XPI。签名发布步骤见 [发布说明](../Source/RELEASING.md)。临时安装的设置不作为永久保存保证。
+
+更新测试包时，解压新版并在调试页点击「重新载入」，再刷新视频页。「检查更新」可以查询发行版本；「查看新版」打开发行页，不调用原生应用更新器。目前未验证 Android 版。
+
 ## Windows 安装包
 
 从[发行页](https://github.com/Elys1an-Y1san/Halo/releases/latest)下载 Windows ZIP，完整解压后打开包内的「开始使用.md」。可以使用独立浏览器安装器，也可以部署后在已有 Chrome 中加载。
