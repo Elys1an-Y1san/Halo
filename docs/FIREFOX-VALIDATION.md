@@ -9,7 +9,7 @@
 - `python3 tests/package-check.py`：全部资源存在、共享文件一致、版本一致，ZIP 与目录逐字节一致。
 - `node tests/render-regression.cjs`：通过。
 - `web-ext 10.7.0 lint`：0 错误、4 警告。两项版本警告来自 Firefox 140 / Android 142 才识别的数据声明；另外两项是固定本地界面模板的 innerHTML 赋值，不包含页面提供的字符串。没有为消除警告而扩大权限或忽略检查。
-- `git diff --check`：通过。
+- 源码改动空白检查通过；首次暂存新生成的浏览器目录时，共享渲染构建产物出现上游已有的行尾空白提示，保留原字节以维持各浏览器资源一致。
 
 ［COMPUTED · HIGH］运行验证未完成：下载的桌面 Firefox 157.0 在独立测试配置启动时退出，报告 `sandbox_extension_issue_file_to_process failed` / `Could not find profile folder`。缓存的自动化 Firefox 也未完成启动。没有取得真实扩展加载、设置保存、视频渲染或站内导航通过证据。静态与单元测试不能代替这些验收。
 
