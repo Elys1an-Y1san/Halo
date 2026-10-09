@@ -12,6 +12,7 @@ window.requestAnimationFrame=callback=>nativeWaveRAF(now=>{
  }
  const started=performance.now();callback(now);
  if(callback.name==='tick'){
+  window.captureTailFrame?.(performance.now()-started);
   const samples=JSON.parse(document.body.dataset.waveCost || '[]');samples.push(performance.now()-started);
   document.body.dataset.waveCost=JSON.stringify(samples);
  }

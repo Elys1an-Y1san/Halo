@@ -18,7 +18,7 @@ const assert = require('node:assert/strict');
   async function check(name, fn) { await fn(); checks.push({name, pass:true}); console.log('PASS', name); }
   try {
     await driver.manage().setTimeouts({script:20000, pageLoad:40000});
-    const addon = await driver.installAddon(path.join(base, `../Releases/${version}/Halo-Firefox-${version}-unsigned.zip`), true);
+    const addon = await driver.installAddon(path.join(base, `../Builds/firefox/${version}/Halo-Firefox-${version}-unsigned.zip`), true);
     assert.equal(addon, 'halo@elys1an-y1san.github.io');
     checks.push({name:'unsigned ZIP installs temporarily', pass:true});
     await driver.get(`moz-extension://${uuid}/options.html`);

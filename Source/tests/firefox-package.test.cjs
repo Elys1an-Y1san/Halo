@@ -3,7 +3,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'Firefox/manifest.json')));
+const version = JSON.parse(fs.readFileSync(path.join(root,'Source/package.json'))).version;
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'Builds/firefox', version, 'Firefox/manifest.json')));
 test('Firefox uses ordered background scripts without a service worker or native host', () => {
   assert.deepEqual(manifest.background, {scripts: ['scripts/halo-update.js', 'scripts/background.js']});
   assert.deepEqual(manifest.permissions, ['storage', 'activeTab']);
@@ -20,7 +21,7 @@ test('Firefox has its own stable identity and a MAIN-world-compatible minimum ve
   assert.equal(main[0].all_frames, true);
 });
 test('Firefox uses the identical prepared scripts as the other browser packages', () => {
-  for (const name of fs.readdirSync(path.join(root, 'Chrome/scripts'))) {
-    assert.deepEqual(fs.readFileSync(path.join(root, 'Firefox/scripts', name)), fs.readFileSync(path.join(root, 'Chrome/scripts', name)), name);
+  for (const name of fs.readdirSync(path.join(root, 'Builds/chromium', version, 'Chrome/scripts'))) {
+    assert.deepEqual(fs.readFileSync(path.join(root, 'Builds/firefox', version, 'Firefox/scripts', name)), fs.readFileSync(path.join(root, 'Builds/chromium', version, 'Chrome/scripts', name)), name);
   }
 });

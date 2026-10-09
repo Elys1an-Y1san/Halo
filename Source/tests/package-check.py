@@ -1,8 +1,10 @@
 from pathlib import Path
-import json, plistlib
+import json, plistlib, sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from build_paths import build_dir
 root=Path(__file__).resolve().parents[2]
-native = root/'Safari/Halo.app'
-packages = [root/'Firefox',root/'Chrome',root/'Source/Native/Halo/Halo Extension/Resources']
+native = build_dir('safari')/'Halo.app'
+packages = [build_dir('firefox')/'Firefox',build_dir('chromium')/'Chrome',root/'Source/Native/Halo/Halo Extension/Resources']
 if native.exists(): packages.append(native/'Contents/PlugIns/Halo Extension.appex/Contents/Resources')
 for directory in packages:
  m=json.loads((directory/'manifest.json').read_text())
@@ -35,9 +37,9 @@ print('PASS: built native app and extension versions match the release' if nativ
 
 # Verify the delivered archive, not only the unpacked development folder.
 from zipfile import ZipFile
-archive = root/'Releases'/version/f'Halo-Firefox-{version}-unsigned.zip'
+archive = build_dir('firefox')/f'Halo-Firefox-{version}-unsigned.zip'
 with ZipFile(archive) as package:
- files = {str(p.relative_to(root/'Firefox')): p for p in (root/'Firefox').rglob('*') if p.is_file()}
+ files = {str(p.relative_to(build_dir('firefox')/'Firefox')): p for p in (build_dir('firefox')/'Firefox').rglob('*') if p.is_file()}
  assert set(package.namelist()) == set(files), 'Firefox ZIP has missing or stale files'
  for name, path in files.items():
   assert package.read(name) == path.read_bytes(), name

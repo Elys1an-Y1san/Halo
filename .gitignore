@@ -38,3 +38,29 @@ Source/design/
 **/*-VALIDATION.md
 **/REPORT.md
 **/RELEASING.md
+
+# Versioned browser builds and current aliases
+/Builds/
+
+# Prose documents stay local; README and AI instructions may be committed
+*.[mM][dD]
+*.[mM][aA][rR][kK][dD][oO][wW][nN]
+*.[mM][dD][oO][wW][nN]
+*.[rR][sS][tT]
+*.[tT][xX][tT]
+*.[pP][dD][fF]
+*.[dD][oO][cC]
+*.[dD][oO][cC][xX]
+*.[oO][dD][tT]
+*.[rR][tT][fF]
+!**/[Rr][Ee][Aa][Dd][Mm][Ee].md
+!**/[Rr][Ee][Aa][Dd][Mm][Ee].markdown
+!**/[Rr][Ee][Aa][Dd][Mm][Ee].txt
+!**/AGENTS.md
+!**/CLAUDE.md
+!**/GEMINI.md
+!**/SKILL.md
+!**/.agents/**/*.[mM][dD]
+!**/.codex/**/*.[mM][dD]
+!**/.cursor/rules/**/*.[mM][dD]
+!.github/copilot-instructions.md

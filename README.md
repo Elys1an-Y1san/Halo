@@ -22,12 +22,12 @@
 
 ## 安装
 
-从发行页下载对应安装包并解压。源码仓库不再收录生成的浏览器包和应用；本地构建方法见下文。当前源码为 1.1.2，发行页版本以实际发布为准。
+从发行页下载对应安装包并解压。源码仓库不再收录生成的浏览器包和应用；本地构建方法见下文。当前源码为 1.1.3，发行页版本以实际发布为准。
 
 | 浏览器 | 安装方式 |
 | --- | --- |
 | Chrome | 打开 `chrome://extensions`，启用开发者模式，点击「加载已解压的扩展程序」，选择包内 `Chrome` 文件夹 |
-| Windows Chrome | 解压 Windows 包，按包内「开始使用.md」操作；也可按上面的方式加载 `Chrome` 文件夹 |
+| Windows Chrome | 解压 Windows 包，按包内「README.md」操作；也可按上面的方式加载 `Chrome` 文件夹 |
 | Firefox 128+ | 打开 `about:debugging#/runtime/this-firefox`，点击「临时载入附加组件」，选择包内 `manifest.json` |
 | Safari | 将包内 `Halo.app` 放到「应用程序」并打开，在 Safari 扩展设置中启用映光、允许网站访问 |
 
@@ -46,7 +46,7 @@ npm run build
 python3 package-halo.py
 ```
 
-生成根目录的 `Chrome/`、`Firefox/`、原生扩展资源及未签名测试包。构建完整 Safari 应用运行 `./build-macos.sh`；构建 Windows 安装包在仓库根目录运行 `python3 Source/package-windows.py`。
+生成 `Builds/chromium/<版本>/Chrome/`、`Builds/firefox/<版本>/Firefox/`、原生扩展资源及未签名测试包。构建完整 Safari 应用运行 `./build-macos.sh`；构建 Windows 安装包在仓库根目录运行 `python3 Source/package-windows.py`。
 
 ```sh
 # 在 Source 中运行
@@ -58,7 +58,9 @@ python3 tests/ui-fixture/serve.py
 
 本地预览为 `http://127.0.0.1:8765/preview.html`。`suite.html` 检查已有流程，`features.html` 检查方案、撤销、对比、精确输入及渲染适配。运行浏览器测试时保持测试页可见，视频移出可视区会暂停采样。测试页使用模拟扩展接口，不替代真实视频网站验收。
 
-源码与测试放在 `Source/`，演示页和签名更新源放在 `docs/`。构建产物放在 `Chrome/`、`Firefox/`、`Safari/` 和 `Releases/`；本地检查截图及工作记录放在 `.local/`，均不提交。
+源码与测试放在 `Source/`，演示页和签名更新源放在 `docs/`。本地构建统一放在 `Builds/`，按 `chromium/`、`firefox/`、`safari/` 分类，每类保留当前版和三个历史版本；`current` 指向当前版。完成原生构建后运行 `python3 Source/package-release.py` 生成各类安装包。
+
+构建产物、截图和工作记录不提交；文档仅保留 README 与 AI 指令文件。`LICENSE`、程序页面和签名更新源随源码保留。
 
 ## 致谢
 

@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 import shutil
 import zipfile
+from build_paths import build_dir, set_current
 
 ROOT = Path(__file__).resolve().parent
 
@@ -21,19 +22,20 @@ def package():
     }}
     manifest['permissions'] = ['storage', 'activeTab']
     manifest['background'] = {'scripts': ['scripts/halo-update.js', 'scripts/background.js']}
-    target = ROOT.parent / 'Firefox'
+    target = build_dir('firefox') / 'Firefox'
     # Recreate generated output so removed source assets cannot survive a rebuild.
     if target.exists():
         shutil.rmtree(target)
     shutil.copytree(source, target, ignore=shutil.ignore_patterns('*.map', '.DS_Store'))
     (target / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
-    releases = ROOT.parent / 'Releases' / version
+    releases = build_dir('firefox')
     releases.mkdir(parents=True, exist_ok=True)
     archive = releases / f'Halo-Firefox-{version}-unsigned.zip'
     with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as output:
         for path in sorted(target.rglob('*')):
             if path.is_file():
                 output.write(path, path.relative_to(target))
+    set_current('firefox')
     print(f'Prepared Firefox package: {target}\nUnsigned archive: {archive}')
 
 if __name__ == '__main__':

@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: python3 Source/tests/repository-policy.py
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -18,7 +19,7 @@ jobs:
         working-directory: Source
       - run: python3 package-halo.py
         working-directory: Source
-      - run: npx --yes web-ext@10.7.0 lint --source-dir ../Firefox
+      - run: npx --yes web-ext@10.7.0 lint --source-dir ../Builds/firefox/current/Firefox
         working-directory: Source
       - run: node --test tests/*.test.cjs
         working-directory: Source

@@ -19,11 +19,11 @@ class Handler(SimpleHTTPRequestHandler):
             file = ROOT / 'tests/ui-fixture' / fixtures[route]
             self.send_response(200); self.send_header('Content-Type', 'text/javascript'); self.end_headers(); self.wfile.write(file.read_bytes()); return
         if route.startswith('/package/'):
-            self.directory = str(ROOT.parent / 'Chrome'); self.path = self.path.removeprefix('/package'); super().do_GET(); return
+            self.directory = str(ROOT.parent / 'Builds/chromium/current/Chrome'); self.path = self.path.removeprefix('/package'); super().do_GET(); return
         if route == '/x-test.html':
             content = (ROOT / 'tests/ui-fixture/x-test.html').read_text()
         elif route == '/package-preview.html':
-            content = (ROOT.parent / 'Chrome/options.html').read_text().replace('<head>', '<head><base href="/package/">').replace('<script src="scripts/halo-ui.js"', '<script src="/mock.js"></script><script src="scripts/halo-ui.js"')
+            content = (ROOT.parent / 'Builds/chromium/current/Chrome/options.html').read_text().replace('<head>', '<head><base href="/package/">').replace('<script src="scripts/halo-ui.js"', '<script src="/mock.js"></script><script src="scripts/halo-ui.js"')
         elif route == '/youtube-wave.html':
             content = (ROOT / 'tests/ui-fixture/youtube-wave.html').read_text()
         elif route == '/responsive.html':

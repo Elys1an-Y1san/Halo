@@ -4,18 +4,21 @@ import hashlib
 import json
 import shutil
 import zipfile
+from build_paths import build_dir, VERSION
 
 root = Path(__file__).resolve().parent.parent
-version = json.loads((root / 'Chrome/manifest.json').read_text(encoding='utf-8'))['version']
-output = root / 'Releases' / version / f'Halo-Windows-Chrome-{version}'
+version = VERSION
+chrome = build_dir('chromium') / 'Chrome'
+assert json.loads((chrome / 'manifest.json').read_text(encoding='utf-8'))['version'] == version
+output = build_dir('chromium') / f'Halo-Windows-Chrome-{version}'
 if output.exists():
     shutil.rmtree(output)
 output.mkdir(parents=True)
 files = []
-for source in sorted((root / 'Chrome').rglob('*')):
+for source in sorted(chrome.rglob('*')):
     if not source.is_file() or source.suffix == '.md' or source.name.startswith('.'):
         continue
-    relative = source.relative_to(root)
+    relative = Path('Chrome') / source.relative_to(chrome)
     target = output / relative
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(source.read_bytes())

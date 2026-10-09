@@ -1,5 +1,6 @@
 from pathlib import Path
 import json,shutil,re,runpy
+from build_paths import build_dir, set_current
 r=Path(__file__).resolve().parent
 # Existing Safari bridge and CSS-filter compatibility patches are retained.
 exec(compile((r/'prepare-safari.py').read_text(),str(r/'prepare-safari.py'),'exec'))
@@ -28,12 +29,13 @@ m['content_scripts'].append({'matches':['https://x.com/*','https://www.x.com/*',
 (r/'dist/manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=2))
 resources=r/'Native/Halo/Halo Extension/Resources'
 shutil.copytree(r/'dist',resources,dirs_exist_ok=True,ignore=shutil.ignore_patterns('*.map'))
-chrome=r.parent/'Chrome'
+chrome=build_dir('chromium')/'Chrome'
 shutil.copytree(r/'dist',chrome,dirs_exist_ok=True,ignore=shutil.ignore_patterns('*.map'))
 m['permissions']=['storage','activeTab']
 m['background']={'service_worker':'scripts/background.js'};m['minimum_chrome_version']='121'
 (chrome/'manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=2))
-print('Prepared Safari resources and Chrome MV3 package')
+set_current('chromium')
+print(f'Prepared Safari resources and Chromium package: {chrome}')
 
 # All browsers share the same prepared renderer and UI resources.
 runpy.run_path(str(r/'package-firefox.py'), run_name='__main__')

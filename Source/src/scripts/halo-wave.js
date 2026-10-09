@@ -108,7 +108,7 @@
             active.target = target; active.commit = commit;
             active.from = active.radius; active.to = target ? active.reach : 0;
             active.started = performance.now();
-            active.duration = Math.max(140, (target ? 900 : 650) * Math.abs(active.to - active.from) / active.reach);
+            active.duration = Math.max(140, (target ? 900 : 560) * Math.abs(active.to - active.from) / active.reach);
             active.overlay.dataset.target = String(target);
             // Retarget the existing radius and rendering; never layer another animation on top.
             commit(); return;
@@ -171,7 +171,7 @@
           guard.textContent = 'html[data-halo-wave="waiting"] :is(#bili-ambient-layer,#halo-x-layer,.ambientlight__container){clip-path:circle(0px at 0px 0px)!important}';
           document.documentElement.append(guard, overlay);
           overlay.dataset.originX = String(origin.x); overlay.dataset.originY = String(origin.y); overlay.dataset.target = String(target);
-          active = { target, commit, origin, reach, size, canvas, dpr, optics, surfaces, layers: [], overlay, guard, context, lastPaint: -Infinity, radius: target ? 0 : reach, from: target ? 0 : reach, to: target ? reach : 0, started: 0, queued: performance.now(), duration: target ? 900 : 650 };
+          active = { target, commit, origin, reach, size, canvas, dpr, optics, surfaces, layers: [], overlay, guard, context, lastPaint: -Infinity, radius: target ? 0 : reach, from: target ? 0 : reach, to: target ? reach : 0, started: 0, queued: performance.now(), duration: target ? 900 : 560 };
           document.documentElement.setAttribute('data-halo-wave', target ? 'waiting' : 'running');
           // Freeze only pre-change material styles; video and renderer continue updating.
           for (const record of surfaces) {
@@ -217,17 +217,31 @@
             for (const record of state.surfaces) {
               const { element, rect, off, on, textOnly } = record;
               if (!element.isConnected) continue;
-              const phase = radius > record.far + 150 ? 'on' : radius < record.near - 150 ? 'off' : 'front';
+              const phase = radius <= 0 ? 'off' : radius > record.far + 150 ? 'on' : radius < record.near - 150 ? 'off' : 'front';
               if (phase !== 'front' && phase === record.phase) continue;
               record.phase = phase;
+              if (phase !== 'front') {
+                // Resolve completed regions to a flat material, not a lingering gradient.
+                const material = phase === 'on' ? on : off;
+                writePaint(record,'background-image',material.image);
+                writePaint(record,'background-color',material.background);
+                writePaint(record,'color',material.color);
+                if(textOnly)writePaint(record,'-webkit-text-fill-color',material.color);
+                continue;
+              }
+              // The feather extends past radius zero. Fade its inner material too,
+              // so the final restore never removes a still-visible patch of light.
+              const tail = Math.min(1,radius/150);
+              const innerBackground = mix(off.background,on.background,tail);
+              const innerColor = mix(off.color,on.color,tail);
               const x = state.origin.x - rect.left, y = state.origin.y - rect.top;
               if (off.image === 'none' && on.image === 'none' && off.background !== on.background) {
                 writePaint(record,'background-color','transparent');
-                writePaint(record,'background-image',`radial-gradient(circle at ${x}px ${y}px, ${on.background} ${Math.max(0, radius-110)}px, ${off.background} ${radius+110}px)`);
+                writePaint(record,'background-image',`radial-gradient(circle at ${x}px ${y}px, ${innerBackground} ${Math.max(0, radius-110)}px, ${off.background} ${radius+110}px)`);
               }
               if (off.color !== on.color) {
                 if (textOnly) {
-                  writePaint(record,'background-image',`radial-gradient(circle at ${x}px ${y}px, ${on.color} ${Math.max(0,radius-80)}px, ${off.color} ${radius+80}px)`);
+                  writePaint(record,'background-image',`radial-gradient(circle at ${x}px ${y}px, ${innerColor} ${Math.max(0,radius-80)}px, ${off.color} ${radius+80}px)`);
                   writePaint(record,'background-clip','text');
                   writePaint(record,'-webkit-background-clip','text');
                   writePaint(record,'-webkit-text-fill-color','transparent');
@@ -235,7 +249,7 @@
                   // Containers keep their inherited baseline; leaf glyphs carry the spatial reveal.
                   const directText = record.directText;
                   const distance = Math.hypot(rect.left+rect.width/2-state.origin.x,rect.top+rect.height/2-state.origin.y);
-                  writePaint(record,'color',directText ? mix(off.color,on.color,Math.max(0,Math.min(1,(radius-distance+80)/160))) : off.color);
+                  writePaint(record,'color',directText ? mix(off.color,on.color,tail*Math.max(0,Math.min(1,(radius-distance+80)/160))) : off.color);
                 }
               }
             }
@@ -264,7 +278,8 @@
             const currentSize=viewport();
             if(currentSize.width!==state.size.width || currentSize.height!==state.size.height) refreshGeometry(state);
             const progress=Math.min(1,(now-state.started)/state.duration);
-            state.radius=state.from+(state.to-state.from)*ease(progress);
+            const eased=state.target?ease(progress):1-Math.pow(1-progress,2);
+            state.radius=state.from+(state.to-state.from)*eased;
             try { paint(state); } catch { controller.finish(); return; }
             if (progress>=1) { controller.finish(); return; }
             frame=requestAnimationFrame(tick);
@@ -282,7 +297,7 @@
         const size=r+110;
         ctx.globalAlpha=envelope;
         ctx.drawImage(state.optics.front,x-size,y-size,size*2,size*2);
-        const launch=Math.max(0,1-r/state.reach*4);
+        const launch=Math.max(0,1-r/state.reach*4)*Math.min(1,r/80);
         if(launch>0){ctx.globalAlpha=launch;ctx.drawImage(state.optics.launch,x-96,y-96,192,192);}
         ctx.globalAlpha=1;
       }
