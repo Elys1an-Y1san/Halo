@@ -20,7 +20,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_response(200); self.send_header('Content-Type', 'text/javascript'); self.end_headers(); self.wfile.write(file.read_bytes()); return
         if route.startswith('/package/'):
             self.directory = str(ROOT.parent / 'Chrome'); self.path = self.path.removeprefix('/package'); super().do_GET(); return
-        if route == '/package-preview.html':
+        if route == '/x-test.html':
+            content = (ROOT / 'tests/ui-fixture/x-test.html').read_text()
+        elif route == '/package-preview.html':
             content = (ROOT.parent / 'Chrome/options.html').read_text().replace('<head>', '<head><base href="/package/">').replace('<script src="scripts/halo-ui.js"', '<script src="/mock.js"></script><script src="scripts/halo-ui.js"')
         elif route == '/youtube-wave.html':
             content = (ROOT / 'tests/ui-fixture/youtube-wave.html').read_text()
@@ -30,6 +32,8 @@ class Handler(SimpleHTTPRequestHandler):
             content = (ROOT / 'tests/ui-fixture/wave.html').read_text().replace('</body>','<script src="layout-repro.js"></script></body>')
         elif route == '/wave.html':
             content = (ROOT / 'tests/ui-fixture/wave.html').read_text()
+        elif route == '/features.html':
+            content = (ROOT / 'tests/ui-fixture/features.html').read_text()
         elif route == '/suite.html':
             content = (ROOT / 'tests/ui-fixture/suite.html').read_text()
         elif route == '/duplicate-init.html':
@@ -38,8 +42,10 @@ class Handler(SimpleHTTPRequestHandler):
             content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text().replace('<script src="scripts/bilibili.js"></script>', '<script src="parameter-race-storage.js"></script><script src="scripts/bilibili.js"></script>').replace('bilibili-test.js', 'parameter-race-test.js')
         elif route == '/bilibili-panel.html':
             content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text()
-        elif route in ('/preview.html', '/test.html', '/update-test.html'):
+        elif route in ('/preview.html', '/test.html', '/update-test.html', '/x-popup.html'):
             content = (ROOT / 'src/options.html').read_text().replace('<script src="scripts/halo-ui.js"', '<script src="mock.js"></script><script src="scripts/halo-update.js"></script><script src="scripts/halo-background.js"></script>\n  <script src="scripts/halo-ui.js"')
+            if route == '/x-popup.html':
+                content = content.replace('<script src="scripts/halo-controls.js"', '<script src="x-popup-mock.js"></script><script src="scripts/halo-controls.js"').replace('</body>', '<script src="x-popup-test.js"></script></body>')
             if route == '/update-test.html':
                 content = content.replace('</body>','<script src="update-test.js"></script></body>')
             if route == '/test.html':

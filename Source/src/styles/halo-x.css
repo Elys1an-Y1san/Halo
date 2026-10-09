@@ -1,0 +1,4 @@
+/* A non-interactive glow outside the video; preserve X's own theme and text. */
+#halo-x-layer{position:fixed;inset:0;z-index:2147483000;overflow:hidden;pointer-events:none;contain:strict;mix-blend-mode:screen}
+#halo-x-layer[hidden],#halo-x-ui[hidden]{display:none!important}
+#halo-x-layer canvas{position:absolute;max-width:none!important;max-height:none!important;opacity:.5;transform:translateZ(0);mask-image:radial-gradient(ellipse at center,#000 20%,#0009 50%,transparent 74%)}

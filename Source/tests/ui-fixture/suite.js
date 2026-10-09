@@ -1,5 +1,5 @@
 (async()=>{
- const cases=[['duplicate','duplicate-init.html','duplicateResults'],['parameters','parameter-race.html','parameterResults'],['updates','update-test.html','updateResults'],['bilibili','bilibili-panel.html','testResults'],['popup','test.html','designResults']];
+ const cases=[['xAdapter','x-test.html','xResults'],['xPopup','x-popup.html','xPopupResults'],['duplicate','duplicate-init.html','duplicateResults'],['parameters','parameter-race.html','parameterResults'],['updates','update-test.html','updateResults'],['bilibili','bilibili-panel.html','testResults'],['popup','test.html','designResults'],['wave','wave.html?test=1','waveResults'],['bridgeWave','youtube-wave.html?test=1','waveResults'],['panelMotion','wave.html?paneltest=1','panelResults'],['reduced','wave.html?edge=reduced','edgeResults'],['missing','wave.html?edge=missing','edgeResults'],['waitingReverse','wave.html?edge=waiting-reverse','edgeResults']];
  const results={};document.getElementById('engine').textContent=navigator.userAgent;
  for(const [name,url,attribute] of cases){
   const frame=document.createElement('iframe');document.getElementById('frame').append(frame);frame.src=url;

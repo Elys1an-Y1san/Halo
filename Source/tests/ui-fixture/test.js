@@ -10,6 +10,6 @@
  document.querySelector('#site').value='youtube';document.querySelector('#site').dispatchEvent(new Event('change'));await wait();
  check('website isolation',s.querySelector('#blur').value==='40');
  s.querySelector('#enabled').click();await wait();check('toggle persisted',JSON.parse(localStorage.getItem('halo-youtube-v1')).enabled===false);
- s.querySelector('#reset').click();await wait();check('reset',s.querySelector('#blur').value==='60'&&s.querySelector('#enabled').checked);
+ s.querySelector('#reset').click();await wait();check('reset',s.querySelector('#blur').value==='60'&&!s.querySelector('#enabled').checked);
  document.body.dataset.testResults=JSON.stringify(results);
 })();

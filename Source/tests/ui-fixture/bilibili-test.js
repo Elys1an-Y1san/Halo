@@ -18,7 +18,9 @@ try {
  check('disabled removes video layer',layer.hidden&&!document.documentElement.hasAttribute('data-bili-ambient'));
  check('disabled updates switch effect state',$('power').dataset.enabled==='false');
  $('reset').click();await sleep(1950);
- check('reset restores renderer',!layer.hidden&&$('mode-label').textContent==='影院');
+ check('reset preserves disabled renderer',layer.hidden&&!$('enabled').checked&&$('mode-label').textContent==='影院');
+ $('enabled').click();await sleep(1950);
+ check('reenabling restores renderer',!layer.hidden);
  const host=document.querySelector('#bili-ambient-ui');
  document.body.classList.add('webscreen-fix');await sleep(20);
  check('web fullscreen hides floating controls immediately',host.hidden&&getComputedStyle(host).display==='none');

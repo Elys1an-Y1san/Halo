@@ -5,113 +5,143 @@ globalThis.HaloUI = {
     cinema: { blur: 60, spread: 100, brightness: 100 },
     wide: { blur: 85, spread: 150, brightness: 110 },
   },
+  defaults: { enabled: true, blur: 60, spread: 100, brightness: 100, quality: 'balanced', position: 'auto', profiles: [], lastCustom: null, anchor: null },
+  qualities: { eco: 15, balanced: 30, smooth: 60 },
+  light(value) {
+    return Object.fromEntries([['blur',0,100,60],['spread',0,200,100],['brightness',20,180,100]].map(([key,min,max,fallback]) => [key, value?.[key] != null && Number.isFinite(Number(value[key])) ? Math.round(Math.max(min,Math.min(max,Number(value[key])))) : fallback]));
+  },
+  normalize(value = {}) {
+    value = value || {};
+    return { ...this.defaults, ...this.light(value), enabled: typeof value.enabled === 'boolean' ? value.enabled : true,
+      quality: Object.hasOwn(this.qualities,value.quality) ? value.quality : 'balanced',
+      position: ['auto','left','right'].includes(value.position) ? value.position : 'auto',
+      anchor: value.anchor && Number.isFinite(value.anchor.x) && Number.isFinite(value.anchor.y) ? {x:Math.max(0,Math.min(1,value.anchor.x)),y:Math.max(0,Math.min(1,value.anchor.y))} : null,
+      lastCustom: value.lastCustom ? this.light(value.lastCustom) : null,
+      profiles: Array.isArray(value.profiles) ? value.profiles.filter(p => p && typeof p.name === 'string').slice(0,12).map(p => ({name:p.name.slice(0,24), ...this.light(p)})) : [] };
+  },
   css: `
 :host {
-  all: initial; position: fixed; width: 360px; height: 44px; --edge: 24px; max-width: calc(100% - 48px); right: 24px; bottom: 24px; z-index: 2147483646;
-  color-scheme: dark; font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
-  color: #f2f3f4; --ink: #f2f3f4; --muted: #a1a5ac; --accent: #f3c780;
-  --surface: #141619; --line: #ffffff17; --ease: cubic-bezier(.2,.8,.2,1); --ease-out: cubic-bezier(.23,1,.32,1);
+  all:initial; pointer-events:none; position:fixed; width:336px; height:40px; --edge:24px; max-width:calc(100% - 48px); right:24px; bottom:24px; z-index:2147483646;
+  color-scheme:dark; font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;
+  --ink:#f2f3f4; --muted:#a7acb5; --accent:#f3c780; --surface:#17191e; --line:#ffffff14; --ease:cubic-bezier(0.2,0,0,1); color:var(--ink);
 }
-* { box-sizing: border-box; }
-[hidden] { display: none !important; }
-button, input { font: inherit; }
-button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-button:disabled { cursor: default; opacity: .5; }
-button { color: inherit; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-#panel {
-  position: absolute; right: 0; bottom: 54px; width: 360px; max-width: 100%; max-height: calc(100dvh - var(--edge) - var(--edge) - 54px);
-  overflow-x: hidden; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #51555d transparent;
-  margin: 0; padding: 22px; background: var(--surface); border: 1px solid #ffffff25;
-  border-radius: 18px; box-shadow: 0 20px 60px #0007, 0 2px 8px #0004;
-  transform-origin: calc(100% - 44px) calc(100% + 32px); opacity: 1; transform: none; transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
-}
-#panel[data-state=closed] { opacity: 0; transform: translateY(8px) scale(.97); pointer-events: none; transition-duration: 180ms; }
-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
-h2 { font-size: 22px; font-weight: 500; letter-spacing: -.045em; line-height: 1.3; margin: 0; text-wrap: balance; }
-#close { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 50%; background: transparent; }
-#close:hover { background: #ffffff0c; color: var(--accent); }
-svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-#toggle { display: flex; align-items: center; gap: 9px; margin-left: auto; padding: 0 16px; height: 44px; border: 1px solid #ffffff30; border-radius: 100px; background: #141619; box-shadow: 0 4px 20px #0005; transition: border-color 160ms, transform 160ms var(--ease); }
-#toggle:hover { border-color: var(--accent); }
-@media (hover:hover) and (pointer:fine) { #toggle:hover { transform: translateY(-2px); } }
-#toggle[aria-expanded=true] { border-color: #f3c78080; }
-.brand-mark { display: inline-block; width: 18px; height: 18px; border: 1.5px solid var(--accent); border-radius: 50%; box-shadow: inset 4px 0 0 #f3c78050; transform: rotate(-35deg); }
-.power { position: relative; isolation: isolate; display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; margin: 6px 0 20px; cursor: pointer; }
-.power-title { position: relative; z-index: 1; font-size: 13px; font-weight: 500; transition: color 220ms; }
-.power[data-enabled=false] .power-title { color: var(--muted); }
-.power-effect { pointer-events: none; position: absolute; right: 0; top: 50%; width: 40px; height: 40px; border: 1px solid var(--accent); border-radius: 50%; box-shadow: 0 0 18px #f3c78030, inset 0 0 12px #f3c78015; opacity: 0; transform: translateY(-50%) scale(.5); }
-input[type=checkbox] { appearance: none; -webkit-appearance: none; z-index: 1; flex-shrink: 0; margin: 0; width: 40px; height: 24px; border: 1px solid #ffffff25; border-radius: 24px; background: #35383e; cursor: pointer; position: relative; transition: background 220ms, border-color 220ms, box-shadow 280ms; }
-input[type=checkbox]:before { content: ""; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #d4d7dc; transition: transform 180ms var(--ease), background 160ms; }
-input[type=checkbox]:checked { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 14px #f3c78025; }
-input[type=checkbox]:checked:before { background: #202226; transform: translateX(16px); }
-.section-label { display: flex; justify-content: space-between; margin: 0 0 8px; color: var(--muted); font-size: 11px; letter-spacing: .015em; }
-#mode-label { color: var(--accent); }
-.presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
-.presets button { position: relative; display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; border: 1px solid var(--line); border-radius: 6px; background: #ffffff03; color: #b7bbc3; font-size: 12px; letter-spacing: .02em; transition: background 160ms, color 160ms, border-color 160ms, transform 160ms var(--ease); }
-.presets button:hover { background: #ffffff0b; border-color: #ffffff35; color: var(--ink); }
-.presets button:active { transform: scale(.97); }
-.presets button[aria-pressed=true] { background: #f3c78010; border-color: #f3c78065; color: var(--accent); }
-.preset-symbol { display: block; width: 13px; height: 13px; border: 1px solid currentColor; border-radius: 50%; }
-.preset-symbol.soft { box-shadow: 0 0 0 3px #ffffff08; }
-.preset-symbol.cinema { border-radius: 2px; height: 10px; box-shadow: 0 0 0 2px #f3c78010; }
-.preset-symbol.wide { width: 16px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 2px #ffffff08; }
-.adjustments { border-top: 1px solid var(--line); padding-top: 10px; }
-.range-row + .range-row { margin-top: 4px; }
-.range-label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 12px; }
-.range-label small { font: 10px/1.3 ui-monospace, "SFMono-Regular", Consolas, monospace; letter-spacing: .06em; color: var(--muted); margin-left: 8px; }
-output { color: var(--ink); font: 13px/1.4 ui-monospace, "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; }
-output:after { content: "%"; color: var(--muted); font-size: 10px; margin-left: 3px; }
-input[type=range] { appearance: none; -webkit-appearance: none; display: block; width: 100%; height: 24px; margin: 0; padding: 0; cursor: pointer; background: transparent; --fill: 50%; }
-input[type=range]::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: linear-gradient(to right, var(--accent) 0 var(--fill), #373b42 var(--fill) 100%); }
-input[type=range]::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 12px; height: 12px; margin-top: -4.5px; border: 2px solid #141619; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1px var(--accent); transition: box-shadow 160ms; }
-input[type=range]:hover::-webkit-slider-thumb, input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 1px var(--accent), 0 0 0 5px #f3c78018; }
-input[type=range]::-moz-range-track { height: 3px; border-radius: 3px; background: #373b42; }
-input[type=range]::-moz-range-progress { height: 3px; background: var(--accent); }
-input[type=range]::-moz-range-thumb { width: 10px; height: 10px; border: 2px solid #141619; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-footer { display: flex; align-items: center; gap: 8px; justify-content: space-between; border-top: 1px solid var(--line); margin-top: 10px; padding-top: 8px; }
-#status { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; letter-spacing: .015em; overflow-wrap: anywhere; }
-#reset { display: flex; align-items: center; gap: 4px; min-height: 30px; flex-shrink: 0; background: transparent; border: 0; padding: 0 3px; border-radius: 4px; color: #bfc3ca; font-size: 11px; }
-#reset svg { width: 12px; height: 12px; }
-#reset:hover { color: var(--accent); }
-.update-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; min-height: 32px; }
-#check-update { border: 0; border-radius: 4px; background: transparent; padding: 0 3px; min-height: 32px; color: var(--muted); font-size: 11px; }
-#check-update:hover { color: var(--accent); }
-#install-update { border:0; padding:0 3px; min-height:32px; color:var(--accent); background:transparent; font-size:11px; }
-#release-link { color: var(--accent); text-decoration: none; font-size: 11px; min-height: 32px; display: flex; align-items: center; }
-#version { color: var(--muted); font: 10px/1.5 ui-monospace,monospace; }
-#update-status { margin: 0; height: 17px; line-height: 17px; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-@media(max-width:480px) { :host { --edge: 16px; right: 16px; bottom: 16px; max-width: calc(100% - 32px); } }
-@media(max-width:350px) { #panel { padding: 18px; } h2 { font-size: 22px; } .range-label small { margin-left: 6px; } }
-@media(prefers-reduced-motion:reduce) { #panel, #panel[data-state=closed] { transform: none; transition: opacity 120ms ease !important; } *, *:before, *:after { animation: none !important; transition: none !important; } }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent;border:0;background:transparent;padding:0;transition:scale 150ms ease-out,color 120ms ease-out,background-color 120ms ease-out}
+button:not(:disabled):not([data-static]):active{scale:0.96}
+button:disabled{cursor:default;opacity:.38}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#panel{pointer-events:auto;position:absolute;right:0;bottom:50px;width:336px;max-width:100%;height:468px;max-height:calc(100dvh - var(--edge) * 2 - 50px);display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:0;padding:16px;background:var(--surface);border-radius:24px;box-shadow:0 0 0 1px #ffffff18,0 8px 24px #0003,0 24px 64px #0005;opacity:1;transform:translateY(0);transform-origin:bottom right;transition:opacity 180ms ease-out,transform 180ms ease-out;overflow:hidden}
+#panel[data-state=closed]{opacity:0;transform:translateY(6px);pointer-events:none;transition-duration:130ms}
+header{display:flex;justify-content:space-between;align-items:center;height:28px;margin-bottom:10px}
+h2{font-size:14px;font-weight:600;letter-spacing:.01em;margin:0;display:flex;gap:8px;align-items:center}
+#close{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;color:var(--muted)}
+#close:hover{background:#ffffff09;color:var(--ink)}
+#toggle{pointer-events:auto;display:flex;align-items:center;gap:8px;margin-left:auto;height:40px;padding:0 14px;border-radius:20px;background:var(--surface);box-shadow:0 0 0 1px #ffffff22,0 4px 16px #0004;color:#d4d7de}
+#toggle{touch-action:none;user-select:none;cursor:grab}
+#toggle[data-dragging=true]{cursor:grabbing;scale:1!important}
+#toggle:hover,#toggle[aria-expanded=true]{color:var(--accent);background:#25262b}
+.brand-mark{display:inline-block;width:16px;height:16px;border:1.5px solid currentColor;border-radius:50%;box-shadow:inset 4px 0 0 #f3c78040;transform:rotate(-35deg);color:var(--accent)}
+.power{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:0 0 12px}
+.power-copy{min-width:0;flex:1}.power-title{display:block;font-size:17px;font-weight:500;line-height:1.5;cursor:pointer}
+#runtime-status{margin:2px 0 0;font-size:11px;line-height:17px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#retry{font-size:11px;color:var(--accent);min-height:24px;margin:0 0 0 6px;flex-shrink:0}
+.switch{position:relative;display:grid;place-items:center;width:52px;height:40px;flex-shrink:0;cursor:pointer}
+.power-effect{position:absolute;inset:-4px;background:radial-gradient(ellipse,#f3c78060,transparent 70%);opacity:0;transform:scale(.55);pointer-events:none;transition:transform 360ms var(--ease),opacity 150ms ease-out}
+.power[data-enabled=true] .power-effect{opacity:.85;transform:scale(1.25)}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;position:relative;z-index:1;cursor:pointer;width:44px;height:26px;margin:0;border:0;border-radius:13px;background:#393d45;box-shadow:inset 0 0 0 1px #ffffff0c;transition:background-color 150ms ease-out}
+input[type=checkbox]:before{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:10px;background:#c9cdd4;box-shadow:0 1px 3px #0003;transform:translateX(0);transition:transform 260ms var(--ease),background-color 150ms ease-out}
+input[type=checkbox]:checked{background:var(--accent)}
+input[type=checkbox]:checked:before{background:#292722;transform:translateX(18px)}
+.power[data-initial=true] .power-effect,.power[data-initial=true] input,.power[data-initial=true] input:before{transition:none}
+.tabs{position:relative;display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line);height:38px;margin-bottom:14px;--tab-index:0}
+.tabs:after{content:"";position:absolute;bottom:-1px;left:0;width:33.333%;height:2px;background:var(--accent);border-radius:2px;transform:translateX(calc(var(--tab-index) * 100%));transition:transform 150ms var(--ease);pointer-events:none}
+.tabs button{color:var(--muted);font-size:12px;min-width:0}
+.tabs button:hover,.tabs button[aria-selected=true]{color:var(--ink)}
+.views{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#555963 transparent;padding:0 2px 2px}
+.view{min-height:100%;display:flex;flex-direction:column}
+.section-label{display:flex;justify-content:space-between;align-items:center;margin:0 0 8px;font-size:11px;color:var(--muted)}
+#mode-label{color:var(--accent)}
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:#0c0e1266;border-radius:12px;margin-bottom:8px}
+.presets button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:30px;border-radius:8px;color:#b9bec7;font-size:12px}
+.presets button:hover{background:#ffffff08}
+.presets button[aria-pressed=true]{background:#f3c78015;color:var(--accent);box-shadow:inset 0 0 0 1px #f3c78026}
+.preset-symbol{width:11px;height:11px;border:1px solid currentColor;border-radius:50%}.preset-symbol.cinema{border-radius:2px;height:9px}.preset-symbol.wide{width:14px;height:8px}
+.range-row{display:grid;grid-template-columns:1fr auto;align-items:center;margin-bottom:4px;gap:0 8px}
+.range-label{display:flex;align-items:center;gap:8px;font-size:12px;cursor:default}.range-label small{font-size:10px;color:var(--muted)}
+.numeric{display:flex;align-items:center;gap:2px;font-size:10px;color:var(--muted)}
+input[type=number]{width:44px;height:22px;border:1px solid transparent;background:transparent;border-radius:6px;text-align:right;font-size:12px;font-variant-numeric:tabular-nums;padding:2px 4px;appearance:textfield;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]:hover,input[type=number]:focus{border-color:#ffffff26;background:#ffffff06}
+input[type=range]{appearance:none;-webkit-appearance:none;width:100%;grid-column:1/-1;height:18px;margin:0;padding:0;background:transparent;cursor:pointer;--fill:50%}
+input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:3px;background:linear-gradient(to right,var(--accent) 0 var(--fill),#383c44 var(--fill) 100%)}
+input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:11px;height:11px;margin-top:-4px;border-radius:50%;background:var(--accent);border:2px solid var(--surface);box-shadow:0 0 0 1px var(--accent);transition:box-shadow 120ms ease-out}
+input[type=range]:hover::-webkit-slider-thumb,input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 1px var(--accent),0 0 0 4px #f3c78018}
+input[type=range]::-moz-range-track{height:3px;border-radius:3px;background:#383c44}
+input[type=range]::-moz-range-progress{height:3px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:9px;height:9px;border:2px solid var(--surface);border-radius:50%;background:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.light-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:4px}
+#compare{display:flex;align-items:center;justify-content:center;min-height:32px;padding:0 12px;border-radius:8px;background:#ffffff08;box-shadow:inset 0 0 0 1px #ffffff0c;font-size:12px}
+#compare[aria-pressed=true]{color:var(--accent);background:#f3c78013;box-shadow:inset 0 0 0 1px #f3c78040}
+.text-button{min-height:32px;font-size:11px;color:var(--muted);padding:0 4px;border-radius:6px}.text-button:hover{color:var(--ink);background:#ffffff06}
+.field{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px;font-size:12px}
+.field select{max-width:66%;height:34px}.field input,.save-form input{min-width:0}
+select,input[type=text],input:not([type]){border:1px solid #ffffff1a;border-radius:8px;background:#202329;color:var(--ink);padding:7px 10px;font-size:12px}
+#profiles{display:block;width:100%;height:126px;padding:4px;background:#0c0e1233;border-radius:10px;overflow:auto;margin:0 0 8px}
+#profiles option{padding:7px;border-radius:6px;min-height:30px}#profiles option:checked{background:#f3c7801a;color:var(--accent)}
+.profile-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
+.save-form{display:flex;gap:6px;margin-top:10px}.save-form input{flex:1;width:0;height:34px}.save-form button{padding:0 12px;min-height:34px;background:var(--accent);color:#292722;border-radius:8px;font-size:12px;font-weight:500}
+.hint{font-size:11px;color:var(--muted);margin:0 0 14px;line-height:1.5}
+.preference-group{border-bottom:1px solid var(--line);margin-bottom:12px;padding-bottom:12px}.preference-group .field{margin-bottom:8px}
+.update-row{display:flex;align-items:center;gap:8px;min-height:32px;flex-wrap:wrap}
+#check-update,#install-update,#release-link{font-size:11px;color:var(--accent);min-height:30px;display:flex;align-items:center;text-decoration:none;border-radius:6px;padding:0 3px}
+#version{margin-left:auto;color:var(--muted);font:10px/1.5 ui-monospace,monospace}
+#update-status{margin:2px 0 0;min-height:28px;color:var(--muted);font-size:11px;line-height:14px}
+#reset-all{align-self:flex-start;margin-top:auto}
+footer{display:flex;align-items:center;gap:8px;min-height:32px;border-top:1px solid var(--line);margin-top:10px;padding-top:6px}
+#status{flex:1;min-width:0;margin:0;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#undo{flex-shrink:0;min-height:26px;font-size:11px;color:var(--accent);padding:0 4px;border-radius:6px}
+:host([data-side=left]) #toggle{margin-left:0;margin-right:auto}
+:host([data-top=true]) #panel{top:50px;bottom:auto;transform-origin:top right}
+@media(max-width:480px){:host{--edge:16px;right:16px;bottom:16px;max-width:calc(100% - 32px)}}
+@media(max-width:350px){#panel{padding:14px;border-radius:22px}.range-label small{display:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}#panel,#panel[data-state=closed]{transform:none}.power-effect{display:none}}
 `,
   popupCss: `
-:host { all: initial; display: block; color-scheme: dark; font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; color: var(--ink, #f2f3f4); }
-#panel { position: static; opacity: 1; transform: none; transition: none; width: 100%; max-width: none; max-height: none; overflow: visible; border: 0; border-radius: 0; box-shadow: none; margin: 0; padding: 18px 24px 10px; animation: none; }
-#close, #toggle { display: none; }
-@media(max-width:350px) { #panel { padding: 18px 20px 10px; } }
+:host{position:static;display:block;width:auto;max-width:none;height:auto}
+#panel{position:static;width:100%;height:420px;max-height:none;grid-template-rows:auto auto minmax(0,1fr) auto;padding:14px 20px 10px;border-radius:0;box-shadow:none;transform:none;transition:none}
+header,#toggle{display:none}
+@media(max-width:350px){#panel{padding:12px 16px 10px}}
 `,
   markup: `
 <section id="panel" role="region" aria-label="映光设置" hidden>
-  <header><h2>让画面，漫出边界</h2><button id="close" aria-label="关闭设置"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
-  <label class="power" for="enabled" id="power"><span class="power-title">环境光</span><span id="power-effect" class="power-effect" aria-hidden="true"></span><input id="enabled" type="checkbox" role="switch" aria-label="启用环境光"></label>
-  <p class="section-label"><span>光效预设</span><span id="mode-label">影院</span></p>
-  <div class="presets" role="group" aria-label="光效预设">
-    <button data-preset="soft" aria-pressed="false"><i class="preset-symbol soft" aria-hidden="true"></i>柔和</button>
-    <button data-preset="cinema" aria-pressed="false"><i class="preset-symbol cinema" aria-hidden="true"></i>影院</button>
-    <button data-preset="wide" aria-pressed="false"><i class="preset-symbol wide" aria-hidden="true"></i>漫射</button>
-  </div>
-  <div class="adjustments">
-    <div class="range-row"><label class="range-label" for="blur"><span>模糊<small>BLUR</small></span><output id="blur-value" for="blur"></output></label><input id="blur" aria-label="模糊 Blur" type="range" min="0" max="100" step="1"></div>
-    <div class="range-row"><label class="range-label" for="spread"><span>扩散<small>SPREAD</small></span><output id="spread-value" for="spread"></output></label><input id="spread" aria-label="扩散 Spread" type="range" min="0" max="200" step="1"></div>
-    <div class="range-row"><label class="range-label" for="brightness"><span>亮度<small>LIGHT</small></span><output id="brightness-value" for="brightness"></output></label><input id="brightness" aria-label="环境光亮度" type="range" min="20" max="180" step="1"></div>
-  </div>
-  <footer><p id="status" role="status" aria-live="polite"></p><button id="reset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg>重置</button></footer>
-  <div class="update-row"><button id="check-update">检查更新</button><a id="release-link" hidden target="_blank" rel="noopener noreferrer">查看新版 ↗</a><button id="install-update" hidden>安装更新</button><span id="version"></span></div>
-  <p id="update-status" role="status" aria-live="polite"></p>
+ <header><h2><span class="brand-mark" aria-hidden="true"></span>映光</h2><button id="close" aria-label="关闭设置"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+ <div class="power" id="power"><div class="power-copy"><label class="power-title" for="enabled">环境光</label><p id="runtime-status" role="status" aria-live="polite">等待视频画面</p></div><button id="retry" hidden>重试</button><label class="switch" for="enabled"><span id="power-effect" class="power-effect" aria-hidden="true"></span><input id="enabled" type="checkbox" role="switch" aria-label="启用环境光"></label></div>
+ <div class="tabs" role="tablist" aria-label="设置分类"><button id="tab-light" role="tab" aria-selected="true" aria-controls="view-light" data-view="light" data-static>光效</button><button id="tab-profiles" role="tab" aria-selected="false" aria-controls="view-profiles" tabindex="-1" data-view="profiles" data-static>方案</button><button id="tab-settings" role="tab" aria-selected="false" aria-controls="view-settings" tabindex="-1" data-view="settings" data-static>偏好</button></div>
+ <div class="views">
+  <section id="view-light" class="view" role="tabpanel" aria-labelledby="tab-light">
+   <p class="section-label"><span>预设</span><span id="mode-label">影院</span></p>
+   <div class="presets" role="group" aria-label="光效预设"><button data-preset="soft" aria-pressed="false"><i class="preset-symbol soft" aria-hidden="true"></i>柔和</button><button data-preset="cinema" aria-pressed="false"><i class="preset-symbol cinema" aria-hidden="true"></i>影院</button><button data-preset="wide" aria-pressed="false"><i class="preset-symbol wide" aria-hidden="true"></i>漫射</button></div>
+   <div class="adjustments"><div class="range-row"><label class="range-label" for="blur">模糊<small id="blur-hint">光边柔和程度</small></label><span class="numeric"><input id="blur-number" type="number" min="0" max="100" step="1" aria-label="模糊数值">%<output id="blur-value" for="blur" hidden></output></span><input id="blur" type="range" min="0" max="100" step="1" aria-label="模糊" aria-describedby="blur-hint"></div><div class="range-row"><label class="range-label" for="spread">扩散<small id="spread-hint">光照覆盖范围</small></label><span class="numeric"><input id="spread-number" type="number" min="0" max="200" step="1" aria-label="扩散数值">%<output id="spread-value" for="spread" hidden></output></span><input id="spread" type="range" min="0" max="200" step="1" aria-label="扩散" aria-describedby="spread-hint"></div><div class="range-row"><label class="range-label" for="brightness">亮度<small id="brightness-hint">环境光明暗</small></label><span class="numeric"><input id="brightness-number" type="number" min="20" max="180" step="1" aria-label="亮度数值">%<output id="brightness-value" for="brightness" hidden></output></span><input id="brightness" type="range" min="20" max="180" step="1" aria-label="环境光亮度" aria-describedby="brightness-hint"></div></div>
+   <div class="light-actions"><button id="compare" aria-pressed="false">对比原画</button><button id="reset" class="text-button">恢复默认光效</button></div>
+  </section>
+  <section id="view-profiles" class="view" role="tabpanel" aria-labelledby="tab-profiles" hidden>
+   <label class="section-label" for="profiles">我的方案<span id="profile-count">0 / 12</span></label>
+   <select id="profiles" size="3" aria-label="已存方案"><option value="">暂无方案，保存一组喜欢的光效</option></select>
+   <div class="profile-actions"><button id="last-custom" class="text-button" disabled>恢复上次自定义</button><button id="delete-profile" class="text-button" disabled>删除所选</button></div>
+   <div class="save-form"><input id="profile-name" type="text" aria-label="方案名称" maxlength="24" placeholder="为当前光效命名" autocomplete="off"><button id="save-profile">保存</button></div>
+  </section>
+  <section id="view-settings" class="view" role="tabpanel" aria-labelledby="tab-settings" hidden>
+   <div class="preference-group"><label class="field">性能<select id="quality"><option value="eco">节能 · 15 帧/秒</option><option value="balanced">均衡 · 30 帧/秒</option><option value="smooth">流畅 · 60 帧/秒</option></select></label><p class="hint">只调整环境光采样，不改变视频帧率。</p><label class="field">位置<select id="position"><option value="custom" disabled>拖动位置</option><option value="auto">自动避让</option><option value="left">左侧</option><option value="right">右侧</option></select></label></div>
+   <div class="update-row"><button id="check-update">检查更新</button><a id="release-link" hidden target="_blank" rel="noopener noreferrer">查看新版 ↗</a><button id="install-update" hidden>安装更新</button><span id="version"></span></div><p id="update-status" role="status" aria-live="polite"></p>
+   <button id="reset-all" class="text-button">恢复全部偏好（保留方案）</button>
+  </section>
+ </div>
+ <footer><p id="status" role="status" aria-live="polite"></p><button id="undo" disabled>撤销</button></footer>
 </section>
-<button id="toggle" aria-label="映光设置" aria-expanded="false" aria-controls="panel"><span class="brand-mark" aria-hidden="true"></span>映光</button>
+<button id="toggle" title="点击设置；拖动移动；Alt + 方向键微调" aria-label="映光设置" aria-expanded="false" aria-controls="panel"><span class="brand-mark" aria-hidden="true"></span>映光</button>
 `,
   bindUpdates(root, api) {
     const install=root.getElementById('install-update');
@@ -195,6 +225,8 @@ footer { display: flex; align-items: center; gap: 8px; justify-content: space-be
     for (const key of ['blur', 'spread', 'brightness']) {
       const input = root.getElementById(key);
       input.value = settings[key];
+      const number = root.getElementById(`${key}-number`);
+      if (number && root.activeElement !== number) number.value = settings[key];
       input.style.setProperty('--fill', `${(settings[key] - Number(input.min)) / (Number(input.max) - Number(input.min)) * 100}%`);
       input.setAttribute('aria-valuetext', `${settings[key]}%`);
       root.getElementById(`${key}-value`).value = String(settings[key]);
@@ -205,19 +237,190 @@ footer { display: flex; align-items: center; gap: 8px; justify-content: space-be
       if (selected) mode = names[button.dataset.preset];
     });
     root.getElementById('mode-label').textContent = mode;
-    const power = root.getElementById('power');
-    const previous = power.dataset.enabled;
-    power.dataset.enabled = String(settings.enabled);
-    if (previous !== undefined && previous !== power.dataset.enabled) {
-      const effect = root.getElementById('power-effect');
-      effect.getAnimations().forEach(animation => animation.cancel());
-      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && !root.getElementById('panel').hidden) {
-        const scales = settings.enabled ? [.55, 1.1, 1.85] : [1.7, 1, .45];
-        effect.animate(scales.map((scale, index) => ({
-          transform: `translateY(-50%) scale(${scale})`,
-          opacity: index === 1 ? .65 : 0,
-        })), { duration: settings.enabled ? 520 : 360, easing: 'cubic-bezier(.2,.8,.2,1)' });
-      }
+    root.getElementById('quality').value = settings.quality || 'balanced';
+    root.getElementById('position').value = settings.anchor ? 'custom' : settings.position || 'auto';
+    root.getElementById('last-custom').disabled = !settings.lastCustom;
+    const profiles = root.getElementById('profiles'), selected = profiles.value;
+    if (profiles.dataset.items !== JSON.stringify(settings.profiles || [])) {
+      profiles.replaceChildren(new Option(settings.profiles?.length ? '选择方案应用光效' : '暂无方案，保存一组喜欢的光效',''), ...(settings.profiles || []).map((p,i) => new Option(p.name,String(i))));
+      profiles.options[0].disabled = true;
+      profiles.dataset.items = JSON.stringify(settings.profiles || []); profiles.value = selected;
     }
+    root.getElementById('delete-profile').disabled = profiles.value === '';
+    root.getElementById('profile-count').textContent = `${settings.profiles?.length || 0} / 12`;
+
+    const power = root.getElementById('power');
+    if (power.dataset.enabled === undefined) {
+      power.dataset.initial = 'true';
+      requestAnimationFrame(() => { requestAnimationFrame(() => { delete power.dataset.initial; }); });
+    }
+    power.dataset.enabled = String(settings.enabled);
+
   },
+};
+
+// Shared editing behavior; render adapters own media and persistence.
+HaloUI.bindPreferences = function(root, { get, commit, compare, retry, place }) {
+  const $ = id => root.getElementById(id);
+  let undo = null, comparing = false, compareGeneration = 0;
+  const tabs = [...root.querySelectorAll('[role=tab]')];
+  const selectView = name => {
+    stopCompare();
+    tabs.forEach((tab, index) => {
+      const selected = tab.dataset.view === name;
+      tab.setAttribute('aria-selected', String(selected)); tab.tabIndex = selected ? 0 : -1;
+      $(tab.getAttribute('aria-controls')).hidden = !selected;
+      if (selected) tab.parentElement.style.setProperty('--tab-index', index);
+    });
+  };
+  tabs.forEach((tab, index) => {
+    tab.onclick = () => selectView(tab.dataset.view);
+    tab.onkeydown = event => {
+      const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+      if (!delta && !['Home','End'].includes(event.key)) return;
+      event.preventDefault();
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + delta + tabs.length) % tabs.length;
+      selectView(tabs[next].dataset.view); tabs[next].focus();
+    };
+  });
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const change = (patch, remember = false) => {
+    const current = get();
+    undo = copy(current); $('undo').disabled = false; $('status').textContent = '';
+    const next = { ...current, ...patch };
+    if (remember) next.lastCustom = this.light(next);
+    commit(next);
+  };
+  const stopCompare = () => { ++compareGeneration; comparing=false; Promise.resolve(compare(false)).catch(()=>{}); $('compare').setAttribute('aria-pressed','false'); $('compare').textContent='对比原画'; };
+  $('compare').onclick = async () => {
+    const next = !comparing, generation = ++compareGeneration;
+    try { if (await compare(next) === false) return; if(generation!==compareGeneration){await compare(false);return;} comparing=next; $('compare').setAttribute('aria-pressed',String(next)); $('compare').textContent=next?'返回光效':'对比原画'; }
+    catch { $('status').textContent='无法连接视频页，请刷新视频页后重试'; }
+  };
+  // A closed popup/page must never leave comparison latched on.
+  window.addEventListener('pagehide',stopCompare);
+  window.addEventListener('blur',stopCompare);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopCompare(); });
+  root.addEventListener('keydown', e => { if(e.key==='Escape') stopCompare(); });
+  $('close').addEventListener('click',stopCompare);
+  $('toggle').addEventListener('click',stopCompare);
+  for(const key of ['blur','spread','brightness']) {
+    const slider=$(key), number=$(`${key}-number`);
+    const edit = input => {
+      if (input.value === '' || !Number.isFinite(Number(input.value))) { number.value=get()[key]; return; }
+      const value=Math.round(Math.max(+slider.min,Math.min(+slider.max,+input.value)));
+      number.value=value; if(get()[key]!==value) change({[key]:value},true);
+    };
+    slider.oninput=()=>edit(slider); slider.onchange=()=>edit(slider);
+    number.onchange=()=>edit(number);
+    number.onkeydown=e=>{if(e.key==='Enter'){edit(number);number.blur();}};
+  }
+  $('enabled').onchange=()=>{stopCompare();change({enabled:$('enabled').checked});};
+  root.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>change(this.presets[button.dataset.preset]));
+  $('reset').onclick=()=>{stopCompare();change(this.light(this.defaults));$('status').textContent='已恢复默认光效，可撤销';};
+  $('reset-all').onclick=()=>{stopCompare();change({...this.defaults,profiles:get().profiles,lastCustom:get().lastCustom});$('status').textContent='已恢复全部偏好，个人方案已保留';};
+  $('undo').onclick=()=>{if(!undo)return;stopCompare();const previous=undo;undo=null;commit(previous);$('undo').disabled=true;$('status').textContent='已撤销';};
+  $('last-custom').onclick=()=>{if(get().lastCustom)change(get().lastCustom);};
+  $('save-profile').onclick=()=>{
+    const name=$('profile-name').value.trim();
+    if(!name){$('status').textContent='先为方案起个名字';$('profile-name').focus();return;}
+    const profiles=copy(get().profiles), index=profiles.findIndex(p=>p.name===name);
+    if(index<0 && profiles.length>=12){$('status').textContent='最多保存 12 个方案，请先删除一个';return;}
+    const profile={name,...this.light(get())}; if(index<0)profiles.push(profile);else profiles[index]=profile;
+    change({profiles});$('profiles').value=String(index<0?profiles.length-1:index);$('delete-profile').disabled=false;
+    $('status').textContent=index<0?'方案已保存':'同名方案已更新，可撤销';
+  };
+  $('profiles').onchange=()=>{const p=get().profiles[$('profiles').value];if(p){change(this.light(p));$('profile-name').value=p.name;}$('delete-profile').disabled=!p;};
+  $('delete-profile').onclick=()=>{const index=$('profiles').value;if(index==='')return;change({profiles:get().profiles.filter((_,i)=>i!==+index)});$('profiles').value='';$('delete-profile').disabled=true;$('status').textContent='方案已删除，可撤销';};
+  for(const key of ['quality','position'])$(key).onchange=()=>{change({[key]:$(key).value,...(key==='position'?{anchor:null}:{})});place?.();};
+  $('retry').onclick=()=>retry?.();
+  $('profile-name').addEventListener('keydown',event=>{if(event.key==='Enter'){$('save-profile').click();event.preventDefault();}});
+  return { resetContext(){ stopCompare();undo=null;$('undo').disabled=true;$('profile-name').value='';$('profiles').value=''; }, stopCompare };
+};
+HaloUI.runtime = function(root, text, retry = false) {
+  const status=root.getElementById('runtime-status');
+  const short = text.includes('无法连接') ? '未连接视频页，刷新后重试' : text.includes('已关闭') ? '已关闭 · 开启后应用参数' : text.includes('正在对比') ? '正在对比原画' : text.includes('设置将用于') ? '请打开所选网站的视频' : text;
+  if(status.textContent!==short){status.textContent=short;status.title=text;status.setAttribute('aria-label',text);}
+  root.getElementById('retry').hidden=!retry;
+};
+HaloUI.place = function(host, settings, video) {
+  if(document.body?.dataset.halo==='popup' || document.documentElement.hasAttribute('data-halo-wave'))return;
+  if(host.__haloDragAnchor)settings={...settings,anchor:host.__haloDragAnchor};
+  const edge=innerWidth<=480?16:24, width=Math.min(336,innerWidth-edge*2);
+  const panel=host.shadowRoot?.getElementById('panel');
+  if(settings.anchor){
+    const button=host.shadowRoot.getElementById('toggle'), bw=button.getBoundingClientRect().width || 84;
+    const x=edge+settings.anchor.x*Math.max(0,innerWidth-edge*2-bw), y=edge+settings.anchor.y*Math.max(0,innerHeight-edge*2-40);
+    const left=x-width+bw;
+    let ph=Math.min(468,innerHeight-edge*2);
+    host.dataset.side='right';host.dataset.top='false';
+    Object.assign(host.style,{left:`${left}px`,right:'auto',top:`${y}px`,bottom:'auto'});
+    let px,py;
+    if(innerWidth-edge-x-bw-12>=width || x-edge-12>=width){
+      px=innerWidth-edge-x-bw-12>=width?x+bw+12:x-width-12;
+      py=Math.max(edge,Math.min(y,innerHeight-edge-ph));
+    }else{
+      const above=y-edge-10,below=innerHeight-edge-y-50,up=above>=below;
+      ph=Math.min(ph,Math.max(0,up?above:below));
+      px=Math.max(edge,Math.min(x+bw-width,innerWidth-edge-width));
+      py=up?y-ph-10:y+50;
+    }
+    Object.assign(panel.style,{left:`${px-left}px`,right:'auto',top:`${py-y}px`,bottom:'auto',maxHeight:`${ph}px`});
+    return;
+  }
+  if(panel?.style)for(const property of ['left','right','top','bottom','max-height'])panel.style.removeProperty(property);
+  let side=settings.position==='left'?'left':'right',top=false;
+  if(settings.position==='auto' && video){
+    const r=video.getBoundingClientRect();
+    side=r.left>innerWidth-r.right?'left':'right';
+    const x=side==='left'?edge:innerWidth-edge-width;
+    const panel=host.shadowRoot?.getElementById('panel');
+    const height=panel && !panel.hidden?Math.min(panel.getBoundingClientRect().height+50,innerHeight-edge*2):40;
+    const overlap=(y)=>Math.max(0,Math.min(x+width,r.right)-Math.max(x,r.left))*Math.max(0,Math.min(y+height,r.bottom)-Math.max(y,r.top));
+    top=overlap(edge)<overlap(innerHeight-edge-height);
+  }
+  host.dataset.side=side;host.dataset.top=String(top);
+  host.style.left=side==='left'?`${edge}px`:'auto';host.style.right=side==='right'?`${edge}px`:'auto';
+  host.style.top=top?`${edge}px`:'auto';host.style.bottom=top?'auto':`${edge}px`;
+};
+
+// Pointer capture keeps dragging stable outside the button. Persist only on release.
+HaloUI.bindDrag = function(root,{get,commit,beforeMove}) {
+  const button=root.getElementById('toggle'),host=root.host;
+  let drag=null,suppressClick=false,clickTimer;
+  const anchorAt=(x,y)=>{
+    const edge=innerWidth<=480?16:24,bw=button.getBoundingClientRect().width || 84;
+    return {x:Math.max(0,Math.min(1,(x-edge)/Math.max(1,innerWidth-edge*2-bw))),y:Math.max(0,Math.min(1,(y-edge)/Math.max(1,innerHeight-edge*2-40)))};
+  };
+  button.addEventListener('click',event=>{if(suppressClick){event.preventDefault();event.stopImmediatePropagation();suppressClick=false;}},true);
+  button.addEventListener('pointerdown',event=>{
+    if(event.button!==0 || !event.isPrimary)return;
+    const rect=button.getBoundingClientRect();
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,left:rect.left,top:rect.top,moved:false};
+    button.setPointerCapture(event.pointerId);
+  });
+  button.addEventListener('pointermove',event=>{
+    if(!drag || event.pointerId!==drag.id)return;
+    if(!drag.moved && Math.hypot(event.clientX-drag.x,event.clientY-drag.y)<6)return;
+    if(!drag.moved){beforeMove();drag.moved=true;button.dataset.dragging='true';}
+    event.preventDefault();
+    drag.anchor=anchorAt(drag.left+event.clientX-drag.x,drag.top+event.clientY-drag.y);
+    host.__haloDragAnchor=drag.anchor;
+    HaloUI.place(host,{...get(),anchor:drag.anchor},null);
+  });
+  const finish=event=>{
+    if(!drag || event.pointerId!==drag.id)return;
+    const ended=drag;drag=null;delete host.__haloDragAnchor;delete button.dataset.dragging;
+    if(ended.moved){
+      suppressClick=true;clearTimeout(clickTimer);clickTimer=setTimeout(()=>{suppressClick=false;},350);
+      if(event.type==='pointerup')commit(ended.anchor);else HaloUI.place(host,get(),null);
+    }
+    if(button.hasPointerCapture(event.pointerId))button.releasePointerCapture(event.pointerId);
+  };
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,finish);
+  button.addEventListener('keydown',event=>{
+    if(!event.altKey || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+    event.preventDefault();beforeMove();const rect=button.getBoundingClientRect(),step=event.shiftKey?40:10;
+    commit(anchorAt(rect.left+(event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0),rect.top+(event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0)));
+  });
 };

@@ -1,79 +1,65 @@
-<div align="center">
+# 映光 · Halo
 
-<img src="docs/media/hero.svg" width="100%" alt="映光 Halo，让画面，漫出边界。" />
+为 YouTube、哔哩哔哩和 X 添加随视频变化的环境光。支持 Chrome、Safari 和桌面版 Firefox。
 
-[![Version](https://img.shields.io/github/v/release/Elys1an-Y1san/Halo?style=flat-square&color=f3c780&label=release)](https://github.com/Elys1an-Y1san/Halo/releases/latest)
-[![Checks](https://github.com/Elys1an-Y1san/Halo/actions/workflows/checks.yml/badge.svg)](https://github.com/Elys1an-Y1san/Halo/actions/workflows/checks.yml)
-[![MIT](https://img.shields.io/badge/license-MIT-f3c780?style=flat-square)](LICENSE)
+[下载安装包](https://github.com/Elys1an-Y1san/Halo/releases/latest) · [观看演示](https://elys1an-y1san.github.io/Halo/) · [反馈问题](https://github.com/Elys1an-Y1san/Halo/issues)
 
-为 YouTube 和哔哩哔哩添加随视频变化的环境光。
+## 使用
 
-[安装指南](docs/INSTALL.md)　/　[发行版本](https://github.com/Elys1an-Y1san/Halo/releases)　/　[观看演示](https://elys1an-y1san.github.io/Halo/)
+打开视频页，点击「映光」。选择柔和、影院或漫射，也可以用滑块或直接输入数值，调整光边柔和程度、覆盖范围和亮度。
 
-</div>
+- 在「方案」页中命名并保存光效，最多保存 12 个方案。同名保存会更新原方案，可以撤销。
+- 切换预设后，点击「恢复上次自定义」找回最近手调的参数。各网站分别保存设置和方案。
+- 点击「对比原画」暂时隐藏环境光，再次点击恢复。关闭面板、切换窗口或关闭弹窗也会结束对比，不改保存的开关状态。
+- 「恢复默认光效」只重置三个光效参数，保留开关状态。误操作可点击「撤销」。
+- 性能档位限制环境光采样上限：节能 15、均衡 30、流畅 60 帧/秒，不改变视频帧率。
+- 拖动页面上的「映光」按钮可自由移动，位置按网站记忆；Alt + 方向键可微调。在「偏好 → 位置」选择自动、左侧或右侧可复位。
+- X 信息流优先跟随可见的播放中视频；滚出画面后停止采样，媒体弹窗中的视频优先。
 
-## 开启环境光
+面板会显示正在生效、等待视频、暂停渲染或连接失败等状态。环境光关闭时仍可预调参数，下次开启后生效。性能、位置和更新入口在「偏好」页中。
 
-点击视频页右下角的「映光」，打开环境光。光从开关位置向外扩散，经过的区域逐渐应用效果，视频继续播放。新版边缘加入漫反射，减弱了圆形亮线和页面交界。关闭时，页面沿着光波逐步恢复。
+设置保存在浏览器本地，无需账号。版本查询不发送浏览网址，默认关闭崩溃上报。
 
-<img src="docs/media/halo-demo.gif" width="100%" alt="展开面板，开启环境光，再关闭并收起面板" />
+## 安装
 
-演示录制于本地动态视频测试页。[视频版](https://elys1an-y1san.github.io/Halo/)画质更清晰。
+从发行页下载对应安装包并解压。源码仓库不再收录生成的浏览器包和应用；本地构建方法见下文。当前源码为 1.1.2，发行页版本以实际发布为准。
 
-## 调到你喜欢的亮度
+| 浏览器 | 安装方式 |
+| --- | --- |
+| Chrome | 打开 `chrome://extensions`，启用开发者模式，点击「加载已解压的扩展程序」，选择包内 `Chrome` 文件夹 |
+| Windows Chrome | 解压 Windows 包，按包内「开始使用.md」操作；也可按上面的方式加载 `Chrome` 文件夹 |
+| Firefox 128+ | 打开 `about:debugging#/runtime/this-firefox`，点击「临时载入附加组件」，选择包内 `manifest.json` |
+| Safari | 将包内 `Halo.app` 放到「应用程序」并打开，在 Safari 扩展设置中启用映光、允许网站访问 |
 
-<img src="docs/media/panel.jpg" width="100%" alt="映光控制面板" />
+安装后刷新已有的视频页。手动更新时保留原安装路径，覆盖文件后重新加载扩展并刷新视频页。
 
-柔和、影院、漫射三种预设，也可以分别调整模糊、扩散和亮度。两个网站独立保存设置，页内面板和工具栏弹窗共用这些设置。
-
-短窗口下，面板可以纵向滚动。开启系统「减少动态效果」后，面板只淡入淡出，环境光直接切换。
-
-<img src="docs/media/wave.jpg" width="100%" alt="漫反射扩散中的环境光" />
-
-## 安装与更新
-
-| 浏览器 | 安装文件 | 操作 |
-| :-- | :-- | :-- |
-| Windows Chrome | [ZIP 安装包](https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.6/Halo-Windows-Chrome-1.0.6.zip) | 解压后运行安装器，或按包内说明手动加载 |
-| Chrome | [`Chrome/`](Chrome) | 开启开发者模式，加载此文件夹 |
-| Firefox 128+（桌面版） | [未签名 ZIP](https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.6/Halo-Firefox-1.0.6-unsigned.zip) / [`Firefox/`](Firefox) | 临时加载 `manifest.json`，永久安装需要签名 |
-| Safari | [`Safari/Halo.app`](Safari) | 打开应用，在 Safari 设置中启用扩展 |
-
-Firefox 当前提供未签名测试包，实际浏览器运行验收尚未完成，详见[验证记录](docs/FIREFOX-VALIDATION.md)。
-
-文件夹内已包含构建产物。Safari 应用使用本地开发签名，首次启用需要开发设置，具体步骤见[安装指南](docs/INSTALL.md)。
-
-在面板底部点击「检查更新」。Safari 发现新版后显示「安装更新」，点击即可启动原生更新器下载、校验签名和安装，完成后刷新视频页。首次从旧版迁移，需要先替换一次应用以获得更新器。Chrome 使用「查看新版」进入发行页，替换文件夹后重新加载扩展。
-
-设置保存在浏览器本地。版本查询不发送浏览网址，也不需要登录。此发行默认关闭崩溃上报。
+Firefox 包尚未签名，只供临时加载，重启浏览器后需要重新加载。Safari 本地构建使用开发证书，未公证，首次启用受系统开发设置影响。跨浏览器真实站点运行情况仍需分别验证。
 
 ## 开发
 
-需要 Node.js 22+、Python 3。构建 Safari 应用还需要 macOS、Xcode，以及本机可用的 Apple Development 或 Developer ID Application 签名证书。
+需要 Node.js 22+、Python 3。构建原生应用还需要 macOS、Xcode 和可用的 Apple 签名证书。
 
-```bash
+```sh
 cd Source
-./build-chrome.sh    # 生成 ../Chrome 和 ../Firefox
-./build-firefox.sh   # 生成 ../Firefox 和未签名 ZIP（也同步其他浏览器资源）
-./build-macos.sh     # 同时生成 ../Safari/Halo.app
+npm ci --ignore-scripts
+npm run build
+python3 package-halo.py
 ```
 
-修改共享界面或 B 站适配后，可以复用仓库内的渲染核心：
+生成根目录的 `Chrome/`、`Firefox/`、原生扩展资源及未签名测试包。构建完整 Safari 应用运行 `./build-macos.sh`；构建 Windows 安装包在仓库根目录运行 `python3 Source/package-windows.py`。
 
-```bash
-cd Source
-python3 package-halo.py
+```sh
+# 在 Source 中运行
+node --test tests/*.test.cjs
+node tests/render-regression.cjs
+python3 tests/package-check.py
 python3 tests/ui-fixture/serve.py
 ```
 
-打开 `http://127.0.0.1:8765/wave.html` 查看演示。测试脚本位于 `Source/tests/`，更新签名步骤见[发布说明](Source/RELEASING.md)。
+本地预览为 `http://127.0.0.1:8765/preview.html`。`suite.html` 检查已有流程，`features.html` 检查方案、撤销、对比、精确输入及渲染适配。运行浏览器测试时保持测试页可见，视频移出可视区会暂停采样。测试页使用模拟扩展接口，不替代真实视频网站验收。
 
-Windows 安装器源码位于 `Source/Windows/`。在仓库根目录运行 `python3 Source/package-windows.py`，生成安装文件夹和 ZIP。
+源码与测试放在 `Source/`，演示页和签名更新源放在 `docs/`。构建产物放在 `Chrome/`、`Firefox/`、`Safari/` 和 `Releases/`；本地检查截图及工作记录放在 `.local/`，均不提交。
 
-## 开源致谢
+## 致谢
 
-YouTube 渲染核心来自 [Wessel Kroos / youtube-ambilight](https://github.com/WesselKroos/youtube-ambilight/tree/18d17188e5562e5ee913f005192d30c9a60be078) 2.38.17，保留原版权和 MIT 许可。映光添加界面、整页扩散、B 站适配和 Safari 兼容修改。
-
-Safari 更新器使用 [Sparkle](https://github.com/sparkle-project/Sparkle) 2.10.0，其许可保存在 `Source/Native/Frameworks/Sparkle-LICENSE`。
-
-遇到问题时，请在 [Issues](https://github.com/Elys1an-Y1san/Halo/issues) 提供浏览器版本、页面类型和复现步骤。
+YouTube 渲染核心来自 [Wessel Kroos / youtube-ambilight](https://github.com/WesselKroos/youtube-ambilight/tree/18d17188e5562e5ee913f005192d30c9a60be078) 2.38.17，保留原版权与 MIT 许可。Safari 更新器使用 [Sparkle](https://github.com/sparkle-project/Sparkle) 2.10.0，许可随源码保留。

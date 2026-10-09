@@ -11,3 +11,30 @@
 *.zip
 Releases/
 *.log
+
+# Local reviews, screenshots, reports and scratch work
+.local/
+Source/design/
+**/artifacts/
+**/test-results/
+**/playwright-report/
+**/coverage/
+**/__pycache__/
+*.pyc
+*.7z
+*.tar.xz
+*.dmg
+*.xpi
+*.sha256
+
+# Generated installable packages (build from Source/)
+/Chrome/
+/Firefox/
+/Safari/*.app/
+/Source/dist/
+/Source/Native/Halo/Halo Extension/Resources/
+
+# Personal handoff and audit documents
+**/*-VALIDATION.md
+**/REPORT.md
+**/RELEASING.md

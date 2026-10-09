@@ -14,7 +14,7 @@ function setup({get = async()=>({})} = {}) {
       ids.set(id,{id, value:'0', min:'0', max:id==='brightness'?'180':'200', checked:true,
         handlers, hidden:false, style:{setProperty(){}},
         addEventListener(type, fn) {handlers[type]=fn;},
-        dispatchEvent(event) {handlers[event.type]?.(event);},
+        dispatchEvent(event) {handlers[event.type]?.(event);this['on'+event.type]?.(event);},
         getAttribute(name) {return attrs.get(name);},
         setAttribute(name, value) {attrs.set(name,value);},
         click() {attrs.set('aria-checked',String(attrs.get('aria-checked')!=='true'));},
@@ -27,11 +27,17 @@ function setup({get = async()=>({})} = {}) {
   const host={attachShadow:()=>root};
   const api={runtime:{getManifest:()=>({version:'test'}),onMessage:{addListener(){}}},storage:{local:{get,set(value){return new Promise(resolve=>writes.push({value,resolve}));}},onChanged:{addListener(fn){storageListener=fn;}}}};
   const document={body:{dataset:{}},documentElement:{append(){},hasAttribute:()=>true},createElement:()=>host,querySelector:()=>({}),getElementById:id=>id==='halo-youtube-ui'?null:element(id),addEventListener(){}};
-  const context={chrome:api,document,crypto:webcrypto,Event:class{constructor(type){this.type=type;}},MutationObserver:class{observe(){}},setTimeout,
+  const context={window:{addEventListener(){}},setInterval:()=>0,clearInterval(){},clearTimeout,chrome:api,document,crypto:webcrypto,Event:class{constructor(type){this.type=type;}},MutationObserver:class{observe(){}},setTimeout,
     HaloUI:{css:'',markup:'',bindUpdates(){},createPanel:()=>({isOpen:false,setOpen(){}}),sync(_,settings){for(const key of ['blur','spread','brightness'])element(key).value=String(settings[key]);element('enabled').checked=settings.enabled;}},
     HaloWave:{create(){return {renderingEnabled:true,setInitial(value){this.renderingEnabled=value;},toggle(value,commit){this.renderingEnabled=value;commit();}};}}};
-  vm.runInNewContext(source,context);
-  return {element,writes,notify:value=>storageListener({'halo-youtube-v1':{newValue:value}},'local'),set(name,value){element(name).value=String(value);element(name).handlers.input();}};
+  const uiContext={};vm.runInNewContext(fs.readFileSync(new URL('../src/scripts/halo-ui.js', `file://${__filename}`),'utf8'),uiContext);
+  context.HaloUI={...uiContext.HaloUI,...context.HaloUI,place(){},runtime(){}};
+  // Bind the real shared editor in this test's document/window context.
+  const shared=fs.readFileSync(new URL('../src/scripts/halo-ui.js', `file://${__filename}`),'utf8');
+  const sandbox=vm.createContext(context), overrides=context.HaloUI;
+  vm.runInContext(shared,sandbox);Object.assign(context.HaloUI,{sync:overrides.sync,bindUpdates:overrides.bindUpdates,createPanel:overrides.createPanel,place(){},runtime(){}});
+  vm.runInContext(source,sandbox);
+  return {element,writes,notify:value=>storageListener({'halo-youtube-v1':{newValue:value}},'local'),set(name,value){element(name).value=String(value);element(name).oninput();}};
 }
 test('a delayed own acknowledgement cannot revert a newer UI edit or renderer value',async()=>{
   const h=setup();await tick();
@@ -65,6 +71,6 @@ test('late initial storage read cannot undo a parameter edit', async()=>{
  h.writes[0].resolve();await tick();
 });
 test('change-only range input applies and saves exactly once',async()=>{
- const h=setup();await tick();const input=h.element('brightness');input.value='160';input.handlers.change();input.handlers.input();await tick();
+ const h=setup();await tick();const input=h.element('brightness');input.value='160';input.onchange();input.oninput();await tick();
  assert.equal(h.element('setting-brightness-range').value,160);assert.equal(h.writes.length,1);h.writes[0].resolve();await tick();assert.equal(h.writes.length,1);
 });

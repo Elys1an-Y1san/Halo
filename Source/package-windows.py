@@ -7,7 +7,7 @@ import zipfile
 
 root = Path(__file__).resolve().parent.parent
 version = json.loads((root / 'Chrome/manifest.json').read_text(encoding='utf-8'))['version']
-output = root / 'Releases' / f'Halo-Windows-Chrome-{version}'
+output = root / 'Releases' / version / f'Halo-Windows-Chrome-{version}'
 if output.exists():
     shutil.rmtree(output)
 output.mkdir(parents=True)

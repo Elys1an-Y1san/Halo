@@ -1,7 +1,7 @@
 {
   "name": "halo-ambient-light",
-  "version": "1.0.6",
-  "description": "Halo ambient light for YouTube and Bilibili",
+  "version": "1.1.2",
+  "description": "Halo ambient light for YouTube, Bilibili and X",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Elys1an-Y1san/Halo.git"

@@ -10,6 +10,10 @@ window.requestAnimationFrame=callback=>nativeWaveRAF(now=>{
   if(document.documentElement.getAttribute('data-halo-wave')==='running'&&waveLastTime)waveTimings.push(now-waveLastTime);else waveTimings=[];
   waveLastTime=now;document.body.dataset.waveTiming=JSON.stringify(waveTimings);
  }
- callback(now);
+ const started=performance.now();callback(now);
+ if(callback.name==='tick'){
+  const samples=JSON.parse(document.body.dataset.waveCost || '[]');samples.push(performance.now()-started);
+  document.body.dataset.waveCost=JSON.stringify(samples);
+ }
 });
 if(new URLSearchParams(location.search).get('edge')==='reduced'){const nativeMedia=window.matchMedia.bind(window);window.matchMedia=query=>query==='(prefers-reduced-motion: reduce)'?{matches:true,addEventListener(){}}:nativeMedia(query);}

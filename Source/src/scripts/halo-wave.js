@@ -38,8 +38,32 @@
     const rect = element.getBoundingClientRect();
     return rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.right > 0 && rect.top < innerHeight && rect.left < innerWidth ? rect : null;
   };
+  let optics;
+  function getOptics() {
+    if(optics)return optics;
+    const front=document.createElement('canvas');front.width=front.height=512;
+    const ctx=front.getContext('2d'),x=256,y=256;
+    const band=ctx.createRadialGradient(x,y,140,x,y,256);
+    band.addColorStop(0,'rgba(243,199,128,0)');
+    band.addColorStop(.38,'rgba(243,199,128,.025)');
+    band.addColorStop(.66,'rgba(255,214,157,.15)');
+    band.addColorStop(.82,'rgba(145,197,219,.07)');
+    band.addColorStop(1,'rgba(145,197,219,0)');
+    ctx.fillStyle=band;ctx.fillRect(0,0,512,512);
+    for(let i=0;i<9;i++){
+      const a=i*2.3999632297,px=x+Math.cos(a)*205,py=y+Math.sin(a)*205;
+      const glow=ctx.createRadialGradient(px,py,0,px,py,45);
+      glow.addColorStop(0,i%3?'rgba(255,224,176,.11)':'rgba(153,211,229,.08)');glow.addColorStop(1,'transparent');
+      ctx.fillStyle=glow;ctx.fillRect(px-45,py-45,90,90);
+    }
+    const launch=document.createElement('canvas');launch.width=launch.height=192;
+    const lc=launch.getContext('2d'),flare=lc.createRadialGradient(96,96,0,96,96,96);
+    flare.addColorStop(0,'rgba(255,234,195,.3)');flare.addColorStop(.3,'rgba(243,199,128,.1)');flare.addColorStop(1,'transparent');
+    lc.fillStyle=flare;lc.fillRect(0,0,192,192);
+    optics={front,launch};return optics;
+  }
   globalThis.HaloWave = {
-    create({ host, trigger, layers, ready, themeAttribute, surfaceSelector }) {
+    create({ host, trigger, layers, ready, themeAttribute, surfaceSelector, animateSurfaces = true }) {
       let enabled = true, active = null, frame = 0, pendingCleanup = null;
       let media = matchMedia('(prefers-reduced-motion: reduce)');
       let baselineDark = document.documentElement.hasAttribute('dark');
@@ -84,7 +108,7 @@
             active.target = target; active.commit = commit;
             active.from = active.radius; active.to = target ? active.reach : 0;
             active.started = performance.now();
-            active.duration = Math.max(420, (target ? 1800 : 1400) * Math.abs(active.to - active.from) / active.reach);
+            active.duration = Math.max(140, (target ? 900 : 650) * Math.abs(active.to - active.from) / active.reach);
             active.overlay.dataset.target = String(target);
             // Retarget the existing radius and rendering; never layer another animation on top.
             commit(); return;
@@ -97,16 +121,24 @@
           const size = viewport();
           const origin = { x: Math.min(size.width, Math.max(0, originRect.left + originRect.width / 2)), y: Math.min(size.height, Math.max(0, originRect.top + originRect.height / 2)) };
           const reach = Math.max(...[[0,0],[size.width,0],[0,size.height],[size.width,size.height]].map(([x,y]) => Math.hypot(x-origin.x,y-origin.y))) + 260;
-          const textElements = [...document.querySelectorAll('h1,h2,h3,h4,p,a,span,yt-formatted-string')].filter(element => !element.childElementCount && element.textContent.trim());
-          const elements = [...new Set([document.documentElement, document.body, ...document.querySelectorAll(surfaceSelector), ...textElements])]
-            .filter(element => element && element !== host && !element.closest('#halo-page-wave'));
-          const surfaces = elements.map(element => {
+          // Prioritize visible site surfaces. Bound capture before reading computed styles;
+          // a long comment thread must not add work to every frame of a toggle.
+          const elements = new Set(animateSurfaces ? [document.documentElement, document.body, ...document.querySelectorAll(surfaceSelector)] : []);
+          const surfaces = [];
+          const capture = element => {
+            if (!element || element === host || element.closest('#halo-page-wave') || surfaces.length >= 72) return;
             const rect = visibleRect(element);
-            if (!rect) return null;
+            if (!rect) return;
             const before = readPaint(element);
             const textOnly = !element.childElementCount && !!element.textContent.trim() && before.image === 'none' && /^(transparent|rgba\(0, 0, 0, 0\))$/.test(before.background);
-            return { element, rect, inline: inlinePaint(element), written: {}, before, textOnly, directText: [...element.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim()) };
-          }).filter(Boolean).slice(0,360);
+            surfaces.push({ element, rect, inline: inlinePaint(element), written: {}, before, textOnly, directText: [...element.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim()) });
+          };
+          for (const element of elements) { capture(element); if (surfaces.length >= 72) break; }
+          let scanned = 0;
+          for (const element of animateSurfaces ? document.querySelectorAll('h1,h2,h3,h4,p,a,span,yt-formatted-string') : []) {
+            if (surfaces.length >= 72 || ++scanned > 240) break;
+            if (!elements.has(element) && !element.childElementCount && element.textContent.trim()) capture(element);
+          }
           if (target && !document.documentElement.hasAttribute(themeAttribute)) baselineDark = document.documentElement.hasAttribute('dark');
           // Sample the off material without pausing or replacing the live video.
           if (!target) {
@@ -128,17 +160,18 @@
           const shadow = overlay.attachShadow({ mode: 'closed' });
           const canvas = document.createElement('canvas');
           canvas.style.cssText = 'position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none';
-          const dpr = Math.min(devicePixelRatio || 1, 1.5);
+          const dpr = Math.min(devicePixelRatio || 1, .75, Math.sqrt(800000 / (size.width * size.height)));
           canvas.width = Math.ceil(size.width * dpr); canvas.height = Math.ceil(size.height * dpr);
           const context = canvas.getContext('2d');
           if (!context) { enabled = target; commit(); return; }
           context.scale(dpr, dpr);
+          const optics = getOptics();
           shadow.append(canvas);
           const guard = document.createElement('style');
-          guard.textContent = 'html[data-halo-wave="waiting"] :is(#bili-ambient-layer,.ambientlight__container){clip-path:circle(0px at 0px 0px)!important}';
+          guard.textContent = 'html[data-halo-wave="waiting"] :is(#bili-ambient-layer,#halo-x-layer,.ambientlight__container){clip-path:circle(0px at 0px 0px)!important}';
           document.documentElement.append(guard, overlay);
           overlay.dataset.originX = String(origin.x); overlay.dataset.originY = String(origin.y); overlay.dataset.target = String(target);
-          active = { target, commit, origin, reach, size, canvas, dpr, surfaces, layers: [], overlay, guard, context, radius: target ? 0 : reach, from: target ? 0 : reach, to: target ? reach : 0, started: 0, queued: performance.now(), duration: target ? 1800 : 1400 };
+          active = { target, commit, origin, reach, size, canvas, dpr, optics, surfaces, layers: [], overlay, guard, context, lastPaint: -Infinity, radius: target ? 0 : reach, from: target ? 0 : reach, to: target ? reach : 0, started: 0, queued: performance.now(), duration: target ? 900 : 650 };
           document.documentElement.setAttribute('data-halo-wave', target ? 'waiting' : 'running');
           // Freeze only pre-change material styles; video and renderer continue updating.
           for (const record of surfaces) {
@@ -158,7 +191,14 @@
             state.origin={x:Math.min(nextSize.width,Math.max(0,rect.left+rect.width/2)),y:Math.min(nextSize.height,Math.max(0,rect.top+rect.height/2))};
             state.reach=Math.max(...[[0,0],[nextSize.width,0],[0,nextSize.height],[nextSize.width,nextSize.height]].map(([x,y])=>Math.hypot(x-state.origin.x,y-state.origin.y)))+260;
             state.from=state.from/oldReach*state.reach;state.to=state.target?state.reach:0;state.radius=state.radius/oldReach*state.reach;
-            for (const record of state.surfaces) record.rect=record.element.getBoundingClientRect();
+            for (const record of state.surfaces) {
+              record.rect=record.element.getBoundingClientRect();
+              const {left,right,top,bottom}=record.rect, {x,y}=state.origin;
+              const l=Math.max(0,left),r=Math.min(state.size.width,right),t=Math.max(0,top),b=Math.min(state.size.height,bottom);
+              record.near=Math.hypot(Math.max(l-x,0,x-r),Math.max(t-y,0,y-b));
+              record.far=Math.max(...[[l,t],[r,t],[l,b],[r,b]].map(([px,py])=>Math.hypot(px-x,py-y)));
+              record.phase=null;
+            }
             for (const record of state.layers) record.rect=record.element.getBoundingClientRect();
             const width=Math.ceil(nextSize.width*state.dpr),height=Math.ceil(nextSize.height*state.dpr);
             if(state.canvas.width!==width || state.canvas.height!==height){state.canvas.width=width;state.canvas.height=height;state.context.scale(state.dpr,state.dpr);}
@@ -177,6 +217,9 @@
             for (const record of state.surfaces) {
               const { element, rect, off, on, textOnly } = record;
               if (!element.isConnected) continue;
+              const phase = radius > record.far + 150 ? 'on' : radius < record.near - 150 ? 'off' : 'front';
+              if (phase !== 'front' && phase === record.phase) continue;
+              record.phase = phase;
               const x = state.origin.x - rect.left, y = state.origin.y - rect.top;
               if (off.image === 'none' && on.image === 'none' && off.background !== on.background) {
                 writePaint(record,'background-color','transparent');
@@ -214,6 +257,10 @@
               captureLayers(state); refreshGeometry(state); state.started=now;
               document.documentElement.setAttribute('data-halo-wave','running');
             }
+            // High-refresh displays need not rasterize this broad light field at 240 Hz.
+            // The radius is still time-based, so skipped paints never extend the transition.
+            if(now-state.lastPaint < 1000/60-.5 && now-state.started < state.duration){frame=requestAnimationFrame(tick);return;}
+            state.lastPaint=now;
             const currentSize=viewport();
             if(currentSize.width!==state.size.width || currentSize.height!==state.size.height) refreshGeometry(state);
             const progress=Math.min(1,(now-state.started)/state.duration);
@@ -225,55 +272,19 @@
           frame=requestAnimationFrame(tick);
         },
       };
+      // Rasterize the soft diffusion once; frames only scale and composite two images.
+      // Keep the live video renderer separate so playback never becomes a snapshot.
       function drawWave(state) {
-        const ctx=state.context, {x,y}=state.origin, r=state.radius, phase=(performance.now()-state.started)/1000;
+        const ctx=state.context, {x,y}=state.origin, r=state.radius;
         ctx.clearRect(0,0,state.size.width,state.size.height);
-        if (r<1) return;
-        const envelope=Math.min(1,r/55,(state.reach-r)/60);
-        ctx.globalCompositeOperation='lighter';
-        // A broad low-contrast diffusion front; no full-circle strokes.
-        const band=ctx.createRadialGradient(x,y,Math.max(0,r-230),x,y,r+170);
-        band.addColorStop(0,'rgba(241,157,73,0)');band.addColorStop(.3,'rgba(241,157,73,.035)');
-        band.addColorStop(.55,'rgba(252,204,130,.09)');band.addColorStop(.78,'rgba(134,204,236,.045)');band.addColorStop(1,'rgba(134,204,236,0)');
-        ctx.globalAlpha=envelope;ctx.fillStyle=band;ctx.beginPath();ctx.arc(x,y,r+170,0,Math.PI*2);ctx.fill();
-        // Uneven overlapping pools scatter the light instead of outlining a boundary.
-        for(let i=0;i<13;i++){
-          const angle=i*2.3999632297+phase*.025,rr=r-50+Math.sin(i*7.1+phase)*65;
-          const px=x+Math.cos(angle)*rr,py=y+Math.sin(angle)*rr,size=120+(i%4)*34;
-          const glow=ctx.createRadialGradient(px,py,0,px,py,size);
-          const color=i%3===0?'128,198,219':i%3===1?'244,191,123':'184,155,208';
-          glow.addColorStop(0,`rgba(${color},.055)`);glow.addColorStop(.45,`rgba(${color},.028)`);glow.addColorStop(1,`rgba(${color},0)`);
-          ctx.fillStyle=glow;ctx.fillRect(px-size,py-size,size*2,size*2);
-        }
-        ctx.shadowBlur=28;
-        for(let ribbon=0;ribbon<5;ribbon++){
-          const start=ribbon*2.3999632297+phase*.06,rr=r-70-ribbon*13;
-          if(rr<1)continue;
-          ctx.strokeStyle=ribbon%2?'#f3c780':'#89c6da';ctx.shadowColor=ctx.strokeStyle;
-          ctx.lineWidth=18;ctx.globalAlpha=envelope*.025;
-          ctx.beginPath();ctx.arc(x,y,rr,start,start+.4);ctx.stroke();
-        }
-        ctx.shadowBlur=6;
-        // Sparse tangential filaments and drifting glints, tied to this same radius.
-        for(let i=0;i<44;i++) {
-          const angle=i*2.3999632297+phase*.028+r*.00018, jitter=Math.sin(i*73.17)*.5+.5;
-          const rr=r-12-jitter*104, px=x+Math.cos(angle)*rr, py=y+Math.sin(angle)*rr;
-          if(px < -20 || py < -20 || px>state.size.width+20 || py>state.size.height+20)continue;
-          const length=4+jitter*24;
-          ctx.globalAlpha=envelope*(.025+jitter*.06);ctx.strokeStyle=i%3===0?'#92d8ee':'#ffe7bb';ctx.lineWidth=jitter>.7?1.4:.8;
-          ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px-Math.cos(angle)*length,py-Math.sin(angle)*length);ctx.stroke();
-          if(jitter>.72) {
-            ctx.fillStyle='#fff3dc';ctx.beginPath();ctx.arc(px,py,1.3,0,Math.PI*2);ctx.fill();
-            if(i%7===0){ctx.globalAlpha=envelope*.08;ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(px-4,py);ctx.lineTo(px+4,py);ctx.moveTo(px,py-4);ctx.lineTo(px,py+4);ctx.stroke();}
-          }
-        }
-        const launch=Math.max(0,1-r/state.reach*6);
-        if(launch>0) {
-          const flare=ctx.createRadialGradient(x,y,0,x,y,115);
-          flare.addColorStop(0,'rgba(255,227,172,.35)');flare.addColorStop(.25,'rgba(247,177,86,.14)');flare.addColorStop(1,'rgba(247,177,86,0)');
-          ctx.globalAlpha=launch;ctx.fillStyle=flare;ctx.fillRect(x-115,y-115,230,230);
-        }
-        ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+        if(r<1)return;
+        const envelope=Math.min(1,r/80,(state.reach-r)/140);
+        const size=r+110;
+        ctx.globalAlpha=envelope;
+        ctx.drawImage(state.optics.front,x-size,y-size,size*2,size*2);
+        const launch=Math.max(0,1-r/state.reach*4);
+        if(launch>0){ctx.globalAlpha=launch;ctx.drawImage(state.optics.launch,x-96,y-96,192,192);}
+        ctx.globalAlpha=1;
       }
       const settle = () => controller.finish();
       for (const event of ['resize','scroll','pagehide']) window.addEventListener(event,settle,{passive:true});
