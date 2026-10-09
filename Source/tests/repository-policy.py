@@ -12,12 +12,14 @@ for name in filter(None,files):
         errors.append(name)
     if path.suffix.lower() not in document_types:
         continue
+    if path.stem.lower().startswith('handoff'):
+        errors.append(name)
     allowed=path.stem.lower()=='readme' or path.name.lower() in ai_names or any(part in {'.agents','.codex'} for part in path.parts) or '.cursor/rules/' in name
     if not allowed:
         errors.append(name)
 if errors:
     raise SystemExit('Files must remain local:\n'+'\n'.join(sorted(set(errors))))
-for name,ignored in [('REPORT.md',True),('notes.PDF',True),('Builds/chromium/1.1.3/Chrome/manifest.json',True),('README.md',False),('Source/Windows/README.md',False),('AGENTS.md',False),('CLAUDE.md',False),('.agents/review/SKILL.md',False)]:
+for name,ignored in [('REPORT.md',True),('notes.PDF',True),('HANDOFF.md',True),('.local/HANDOFF.md',True),('.agents/Handoff-latest.md',True),('Builds/chromium/1.1.3/Chrome/manifest.json',True),('README.md',False),('Source/Windows/README.md',False),('AGENTS.md',False),('CLAUDE.md',False),('.agents/review/SKILL.md',False)]:
     result=subprocess.run(['git','check-ignore','--no-index','-q',name])
     assert (result.returncode==0)==ignored, name
 print('PASS repository contains only allowed documents and no generated builds')

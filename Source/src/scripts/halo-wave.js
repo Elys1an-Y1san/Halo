@@ -168,7 +168,7 @@
           const optics = getOptics();
           shadow.append(canvas);
           const guard = document.createElement('style');
-          guard.textContent = 'html[data-halo-wave="waiting"] :is(#bili-ambient-layer,#halo-x-layer,.ambientlight__container){clip-path:circle(0px at 0px 0px)!important}';
+          guard.textContent = 'html[data-halo-wave="waiting"] :is(#bili-ambient-layer,#halo-x-layer,#halo-youtube-layer){clip-path:circle(0px at 0px 0px)!important}';
           document.documentElement.append(guard, overlay);
           overlay.dataset.originX = String(origin.x); overlay.dataset.originY = String(origin.y); overlay.dataset.target = String(target);
           active = { target, commit, origin, reach, size, canvas, dpr, optics, surfaces, layers: [], overlay, guard, context, lastPaint: -Infinity, radius: target ? 0 : reach, from: target ? 0 : reach, to: target ? reach : 0, started: 0, queued: performance.now(), duration: target ? 900 : 560 };

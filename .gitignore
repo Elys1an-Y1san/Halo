@@ -64,3 +64,8 @@ Source/design/
 !**/.codex/**/*.[mM][dD]
 !**/.cursor/rules/**/*.[mM][dD]
 !.github/copilot-instructions.md
+
+# Handoffs remain local, including inside AI instruction directories.
+**/[Hh][Aa][Nn][Dd][Oo][Ff][Ff]*.[mM][dD]
+**/[Hh][Aa][Nn][Dd][Oo][Ff][Ff]*.[mM][aA][rR][kK][dD][oO][wW][nN]
+**/[Hh][Aa][Nn][Dd][Oo][Ff][Ff]*.[tT][xX][tT]

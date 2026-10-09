@@ -167,14 +167,14 @@ header,#toggle{display:none}
       try {
         const result=await send({type:'halo-check-update',force:true});
         if (!result?.ok) {
-          status.textContent=result?.code==='no_release'?'暂无已发布版本':result?.code==='rate_limit'?'查询过于频繁，请稍后重试':'查询失败，请检查网络后重试';
+          status.textContent=!result?'扩展后台未响应，请刷新页面后重试':result.code==='no_release'?'暂无已发布版本':result.code==='rate_limit'?'查询过于频繁，请稍后重试':result.code==='invalid_release'?'版本信息校验失败，请稍后重试':'查询失败，请检查网络后重试';
           return;
         }
         const url=new URL(result.url);
         if(url.origin!=='https://github.com'||!url.pathname.startsWith('/Elys1an-Y1san/Halo/releases/tag/'))throw Error('Invalid release link');
         status.textContent=result.available?`新版本 ${result.latest} 可用`:`已是最新版本 ${result.current}`;
         if(result.available){link.href=url.href;link.hidden=false;install.hidden=!native;}
-      } catch { status.textContent='查询失败，请检查网络后重试'; }
+      } catch (error) { status.textContent=error.message==='background_timeout'?'扩展后台响应超时，请重新打开面板后重试':error.message==='Invalid release link'?'版本信息校验失败，请稍后重试':'无法连接扩展后台，请刷新页面后重试'; }
       finally {button.disabled=false;button.textContent='检查更新';}
     });
   },

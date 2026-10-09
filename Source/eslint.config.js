@@ -14,7 +14,7 @@ export default defineConfig([
         HaloWave: true,
         HaloUpdates: true,
         HaloBilibili: true,
-        ambientlight: true,
+        HaloVideo: true,
         cookieStore: true,
       },
     },

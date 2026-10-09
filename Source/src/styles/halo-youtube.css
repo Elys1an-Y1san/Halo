@@ -1,2 +1,11 @@
-.ytpa-ambientlight-settings-menu,.ytp-ambientlight-settings-button,.ytp-ambientlight-settings-button-tooltip{display:none!important}
-#halo-youtube-ui[hidden]{display:none!important}
+/* The glow sits behind the site; video, captions and controls retain their layout. */
+#halo-youtube-layer{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;contain:strict;background:#101218}
+#halo-youtube-layer[hidden],#halo-youtube-ui[hidden]{display:none!important}
+#halo-youtube-layer canvas{position:absolute;max-width:none!important;max-height:none!important;opacity:.85;transform:translateZ(0);mask-image:radial-gradient(ellipse at center,#000 35%,#000b 62%,transparent 75%)}
+html[data-halo-youtube]{background:#101218!important;color-scheme:dark;--yt-spec-base-background:#101218;--yt-spec-raised-background:#20232d;--yt-spec-menu-background:#20232d;--yt-spec-text-primary:#f1f3f7;--yt-spec-text-secondary:#bdc5d0;--yt-spec-icon-active-other:#f1f3f7;--yt-spec-icon-inactive:#bdc5d0;--yt-spec-badge-chip-background:#ffffff16;--yt-spec-brand-background-primary:#101218;--yt-spec-brand-background-solid:#101218}
+html[data-halo-youtube] body{background:transparent!important;isolation:isolate}
+html[data-halo-youtube] :is(ytd-app,ytd-watch-flexy,ytd-watch-grid,ytd-page-manager){background:transparent!important}
+html[data-halo-youtube] :is(ytd-masthead,#background.ytd-masthead){background:#151921e8!important}
+html[data-halo-youtube] :is(#description.ytd-watch-metadata,ytd-playlist-panel-renderer){background:#181d2799!important}
+/* The website's own cinematic backdrop would otherwise compete with this layer. */
+html[data-halo-youtube] #cinematics{visibility:hidden!important}

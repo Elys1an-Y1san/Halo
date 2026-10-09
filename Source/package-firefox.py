@@ -16,7 +16,7 @@ def package():
     manifest.pop('minimum_chrome_version', None)
     manifest['browser_specific_settings'] = {'gecko': {
         'id': 'halo@elys1an-y1san.github.io',
-        # Static MAIN-world scripts are supported starting with Firefox 128.
+        # Keep the existing supported browser floor for upgrades.
         'strict_min_version': '128.0',
         'data_collection_permissions': {'required': ['none']},
     }}

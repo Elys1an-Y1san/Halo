@@ -1,1 +1,0 @@
-let changeEvents=0;document.querySelectorAll('input').forEach(e=>e.addEventListener('change',()=>changeEvents++));document.querySelector('#setting-enabled').onclick=e=>e.target.setAttribute('aria-checked',String(e.target.getAttribute('aria-checked')!=='true'));

@@ -2,7 +2,6 @@
 if (!globalThis.HaloUpdates && typeof importScripts === 'function') globalThis.importScripts('halo-update.js');
 const haloAPI=globalThis.browser || globalThis.chrome;
 const haloUpdateService=HaloUpdates.create({storage:haloAPI.storage.local});
-haloAPI.runtime.onInstalled.addListener(() => { haloAPI.storage.local.set({crashOptions:{crash:false,technical:false,video:false}}); });
 haloAPI.runtime.onMessage.addListener((message,sender,reply)=>{
   if (sender.id && sender.id !== haloAPI.runtime.id) return false;
   const native = haloAPI.runtime.getManifest().permissions?.includes('nativeMessaging');

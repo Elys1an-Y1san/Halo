@@ -1,22 +1,17 @@
-const fs = require('fs');
-const assert = require('node:assert/strict');
-const source = fs.readFileSync(require('path').join(__dirname, '../src/scripts/libs/ambientlight.js'), 'utf8');
-const assignment = source.slice(source.indexOf('    this.filterElem.style.filter ='), source.indexOf('    this.srcVideoOffset =', source.indexOf('    this.filterElem.style.filter =')));
-const filter = new Function('CanvasRenderingContext2D', 'contrast', 'brightness', 'saturation', assignment);
-function getFilter(blur2, support, webGL=true) {
-  const target={settings:{blur2,webGL},videoOffset:{height:1080},filterElem:{style:{}}};
-  filter.call(target,{prototype:support?{filter:'none'}:{}},100,100,100);
-  return target.filterElem.style.filter;
-}
-assert.equal(getFilter(0,false),'');
-assert.equal(getFilter(20,false),'blur(54px)');
-assert.equal(getFilter(60,false),'blur(162px)');
-assert.equal(getFilter(60,true),''); // No double blur when the native path works.
-assert.equal(getFilter(60,true,false),'blur(162px)');
-function method(name,next) {const start=source.indexOf(`  ${name}(`); const end=source.indexOf(`\n  ${next}`,start);return new Function(`return ({${source.slice(start,end)}}).${name}`)();}
-const recreate=method('recreateProjectors','clear(');
-const resize=method('resizeCanvasses','updatedSizesChanged');
-function extent(spread){let scale;const target={settings:{spread,edge:12},innerStrength:1,p:{w:256,h:144},clippedVideoScale:[1,1],barsClip:[0,0],projector:{rescale:(_,s)=>scale={...s}}};recreate.call(target);resize.call(target);return scale;}
-const low=extent(17),high=extent(120);
-assert(high.x>low.x && high.y>low.y);
-console.log(JSON.stringify({pass:true,blurPixels:[getFilter(0,false),getFilter(20,false),getFilter(60,false)],spread:{low,high}},null,2));
+const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict');
+const context = vm.createContext({});
+vm.runInContext(fs.readFileSync(__dirname+'/../src/scripts/halo-video.js','utf8'), context);
+const geometry = context.HaloVideo.geometry;
+const rect = {width:1280,height:720,left:20,top:40};
+const config = {blur:60,spread:100,brightness:110};
+assert.equal(geometry(rect,1920,1080,config).style.filter, 'blur(108px) brightness(110%)');
+assert.equal(geometry(rect,1920,1080,{...config,blur:0}).style.filter, 'blur(0px) brightness(110%)');
+const narrow = geometry(rect,1920,1080,{...config,spread:0});
+assert.equal(narrow.style.width,'1280px');assert.equal(narrow.style.left,'20px');
+const portrait = geometry(rect,1080,1920,{...config,spread:0});
+assert.equal(portrait.style.width,'405px');assert.equal(portrait.style.height,'720px');
+assert.equal(portrait.style.left,'457.5px');
+assert.equal(geometry(rect,0,0,config),null);
+assert.equal(geometry({...rect,width:0},1920,1080,config),null);
+assert.equal(geometry(rect,1,10000,config).height,1280);
+console.log('PASS Halo geometry: blur, spread, brightness, letterboxing, portrait, empty frames and bounded allocation');

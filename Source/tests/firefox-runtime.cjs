@@ -43,7 +43,7 @@ const assert = require('node:assert/strict');
       await driver.get(url);
       try {
         await driver.wait(() => driver.executeScript('return !!document.querySelector(arguments[0])?.shadowRoot', selector), 20000);
-        const state = await driver.executeScript('return {title:document.title, video:!!document.querySelector("video"), renderer:!!document.querySelector(".ambientlight__container,#bili-ambient-layer"), enabled:document.documentElement.hasAttribute("data-ambientlight-enabled"), ready:document.querySelector("video")?.readyState, paused:document.querySelector("video")?.paused}');
+        const state = await driver.executeScript('return {title:document.title, video:!!document.querySelector("video"), renderer:!!document.querySelector("#halo-youtube-layer,#bili-ambient-layer"), enabled:document.documentElement.hasAttribute("data-halo-youtube"), ready:document.querySelector("video")?.readyState, paused:document.querySelector("video")?.paused}');
         checks.push({name:`${name} real site content injection`,pass:true,state});
       } catch (error) { checks.push({name:`${name} real site content injection`,pass:false,error:error.message,title:await driver.getTitle()}); }
       fs.writeFileSync(path.join(base,`.build/firefox-${name}.png`), await driver.takeScreenshot(), 'base64');

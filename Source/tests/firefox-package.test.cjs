@@ -10,15 +10,13 @@ test('Firefox uses ordered background scripts without a service worker or native
   assert.deepEqual(manifest.permissions, ['storage', 'activeTab']);
   assert.equal(manifest.minimum_chrome_version, undefined);
 });
-test('Firefox has its own stable identity and a MAIN-world-compatible minimum version', () => {
+test('Firefox has its own stable identity and no MAIN-world injection', () => {
   assert.equal(manifest.browser_specific_settings.gecko.id, 'halo@elys1an-y1san.github.io');
   assert.equal(manifest.browser_specific_settings.gecko.strict_min_version, '128.0');
   assert.deepEqual(manifest.browser_specific_settings.gecko.data_collection_permissions, {required: ['none']});
   const main = manifest.content_scripts.filter(entry => entry.world === 'MAIN');
-  assert.equal(main.length, 1);
-  assert.deepEqual(main[0].js, ['scripts/injected.js']);
-  assert.equal(main[0].run_at, 'document_start');
-  assert.equal(main[0].all_frames, true);
+  assert.equal(main.length, 0);
+  assert.equal(manifest.web_accessible_resources, undefined);
 });
 test('Firefox uses the identical prepared scripts as the other browser packages', () => {
   for (const name of fs.readdirSync(path.join(root, 'Builds/chromium', version, 'Chrome/scripts'))) {

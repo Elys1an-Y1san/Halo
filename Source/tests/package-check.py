@@ -13,7 +13,7 @@ for directory in packages:
  bg=m['background'];refs+=bg.get('scripts',[]) or [bg['service_worker']]
  for entry in m['content_scripts']:
   refs+=entry.get('js',[])+entry.get('css',[])
- for entry in m['web_accessible_resources']:refs+=entry['resources']
+ for entry in m.get('web_accessible_resources', []):refs+=entry['resources']
  for file in [*refs,'credits.html','LICENSE']:assert (directory/file).is_file(),file
  assert set(m['host_permissions'])=={'https://www.youtube.com/*','https://www.bilibili.com/*','https://player.bilibili.com/*','https://live.bilibili.com/*','https://api.github.com/*','https://x.com/*','https://www.x.com/*','https://twitter.com/*','https://www.twitter.com/*'}
  assert 'service_worker' in bg if directory.name=='Chrome' else 'scripts' in bg
@@ -21,7 +21,7 @@ for directory in packages:
 print('PASS: Safari/Chrome/Firefox manifests, resources, license and host scope')
 
 from hashlib import sha256
-ui_files = ['options.html','credits.html','scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/halo-controls.js','scripts/bilibili.js','scripts/x-player.js','styles/halo-x.css','styles/halo-popup.css']
+ui_files = ['options.html','credits.html','scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/halo-controls.js','scripts/halo-engine.js','scripts/halo-video.js','scripts/youtube-player.js','scripts/bilibili-player.js','styles/halo-youtube.css','scripts/x-player.js','styles/halo-x.css','styles/halo-popup.css']
 for file in ui_files:
  expected = sha256((root/'Source/src'/file).read_bytes()).digest()
  for directory in [*packages,root/'Source/dist']:
@@ -44,3 +44,10 @@ with ZipFile(archive) as package:
  for name, path in files.items():
   assert package.read(name) == path.read_bytes(), name
 print('PASS: unsigned Firefox ZIP matches generated folder byte for byte')
+
+for directory in packages:
+ scripts = directory/'scripts'
+ expected = {p.name for p in (root/'Source/src/scripts').iterdir()} | {'background.js'}
+ assert {p.name for p in scripts.iterdir()} == expected, ('stale or missing runtime', directory)
+ assert all(entry.get('world') != 'MAIN' for entry in json.loads((directory/'manifest.json').read_text())['content_scripts'])
+print('PASS: no legacy runtime or MAIN-world bridge survives in any package')

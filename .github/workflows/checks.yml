@@ -27,5 +27,5 @@ jobs:
         working-directory: Source
       - run: python3 tests/package-check.py
         working-directory: Source
-      - run: npx eslint src/scripts/halo-{ui,controls,wave,update,background}.js src/scripts/{bilibili,x-player}.js
+      - run: npm run lint
         working-directory: Source

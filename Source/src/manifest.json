@@ -1,95 +1,106 @@
 {
   "manifest_version": 3,
-  "name": "Ambient light for YouTube™",
-  "description": "Immerse yourself in YouTube™ videos with ambient light!",
+  "name": "映光 Halo",
+  "description": "为 YouTube、哔哩哔哩与 X 添加可调节的视频环境光。",
   "version": "0.0.0",
-  "homepage_url": "https://github.com/WesselKroos/youtube-ambilight",
-  "author": "Wessel Kroos",
+  "author": "Halo contributors",
   "icons": {
     "16": "images/icon-16.png",
     "32": "images/icon-32.png",
     "128": "images/icon-128.png"
   },
-  "minimum_chrome_version": "121",
-  "browser_specific_settings": {
-    "gecko": {
-      "strict_min_version": "121.0",
-      "id": "{60493d8c-aec8-448e-a247-5d2cfa047d69}"
-    }
-  },
   "action": {
+    "default_title": "映光 Halo",
+    "default_popup": "options.html",
     "default_icon": {
       "16": "images/icon-16.png",
       "24": "images/icon-24.png",
       "32": "images/icon-32.png"
-    },
-    "default_popup": "options.html"
+    }
   },
   "background": {
     "service_worker": "scripts/background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://www.youtube.com/*"
-      ],
-      "exclude_matches": [
-        "https://www.youtube.com/live_chat*",
-        "https://www.youtube.com/embed/*"
-      ],
-      "js": [
-        "scripts/content.js"
-      ],
-      "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "https://www.youtube.com/embed/*"
-      ],
-      "js": [
-        "scripts/content.js"
-      ],
-      "all_frames": true,
-      "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "https://www.youtube.com/live_chat*"
-      ],
-      "exclude_matches": [
-        "https://www.youtube.com/live_chat?is_popout=1*"
-      ],
-      "css": [
-        "styles/live-chat.css"
-      ],
-      "js": [
-        "scripts/live-chat.js"
-      ],
-      "all_frames": true,
-      "run_at": "document_start"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "styles/content.css",
-        "scripts/content-main.js",
-        "scripts/injected.js",
-        "images/noise-1.png",
-        "images/noise-2.png",
-        "images/noise-3.png",
-        "images/donate.svg"
-      ],
-      "matches": [
-        "https://www.youtube.com/*"
-      ]
-    }
-  ],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": false
   },
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://www.bilibili.com/*",
+    "https://player.bilibili.com/*",
+    "https://live.bilibili.com/*",
+    "https://api.github.com/*",
+    "https://x.com/*",
+    "https://www.x.com/*",
+    "https://twitter.com/*",
+    "https://www.twitter.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "scripts/halo-ui.js",
+        "scripts/halo-update.js",
+        "scripts/halo-wave.js",
+        "scripts/halo-video.js",
+        "scripts/youtube-player.js",
+        "scripts/halo-engine.js"
+      ],
+      "css": [
+        "styles/halo-youtube.css"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "exclude_matches": [
+        "https://www.youtube.com/live_chat*"
+      ]
+    },
+    {
+      "matches": [
+        "https://www.bilibili.com/*",
+        "https://player.bilibili.com/*",
+        "https://live.bilibili.com/*"
+      ],
+      "js": [
+        "scripts/halo-ui.js",
+        "scripts/halo-update.js",
+        "scripts/halo-wave.js",
+        "scripts/halo-video.js",
+        "scripts/bilibili-player.js",
+        "scripts/halo-engine.js"
+      ],
+      "css": [
+        "styles/bilibili.css"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://www.x.com/*",
+        "https://twitter.com/*",
+        "https://www.twitter.com/*"
+      ],
+      "js": [
+        "scripts/halo-ui.js",
+        "scripts/halo-update.js",
+        "scripts/halo-wave.js",
+        "scripts/halo-video.js",
+        "scripts/x-player.js",
+        "scripts/halo-engine.js"
+      ],
+      "css": [
+        "styles/halo-x.css"
+      ],
+      "run_at": "document_idle"
+    }
   ]
 }

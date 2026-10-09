@@ -1,3 +1,4 @@
+if (globalThis.HaloYouTube) HaloYouTube.supports=()=>true;
 if (globalThis.HaloBilibili) HaloBilibili.supports=()=>true;
 const sourceCanvas=document.getElementById('source'),sourceContext=sourceCanvas.getContext('2d');
 const drawScene=now=>{

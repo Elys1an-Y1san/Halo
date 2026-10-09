@@ -15,4 +15,6 @@ assert.equal(rank(candidate({rect:rect(0,0)})), -Infinity);
 assert(rank(candidate({playing:true})) > rank(candidate()));
 assert(rank(candidate({rect:rect(320,180),primary:false})) > rank(candidate({rect:rect(1280,720,0,2000),playing:true})));
 assert(rank(candidate()) > rank(candidate({primary:false,rect:rect(1000,600)})));
+assert.equal(rank(candidate({mini:true,playing:true})), -Infinity);
+assert(Number.isFinite(rank(candidate({rect:rect(320,180)}))));
 console.log('PASS: 12 playback routes, 5 rejected routes, hidden/disconnected/zero-size/playing/floating/primary selection');

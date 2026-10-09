@@ -1,41 +1,27 @@
+"""Package Halo's independent static runtime for all browser targets."""
 from pathlib import Path
-import json,shutil,re,runpy
+import json
+import shutil
+import runpy
 from build_paths import build_dir, set_current
-r=Path(__file__).resolve().parent
-# Existing Safari bridge and CSS-filter compatibility patches are retained.
-exec(compile((r/'prepare-safari.py').read_text(),str(r/'prepare-safari.py'),'exec'))
-for name in ['scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/halo-controls.js','scripts/x-player.js','styles/halo-x.css','scripts/bilibili-player.js','scripts/bilibili.js','styles/bilibili.css','styles/halo-popup.css','styles/halo-youtube.css','options.html','credits.html']:
- shutil.copy2(r/'src'/name,r/'dist'/name)
-shutil.copy2(r/'src/scripts/halo-background.js',r/'dist/scripts/background.js')
-# Do not forward crash reports from this independent distribution.
-for p in (r/'dist/scripts').glob('*.js'):
- if p.name in ['content-main.js','content.js','injected.js']:
-  s=p.read_text();s=s.replace("(await storage.get('crashOptions')) || defaultCrashOptions",'({crash:false,technical:false,video:false})')
-  s=re.sub(r'(const defaultCrashOptions = \{)[\s\S]*?(\};)',r'\1 video:false, technical:false, crash:false \2',s)
-  p.write_text(s)
-m=json.loads((r/'dist/manifest.json').read_text());m.update(name='映光 Halo',version=json.loads((r/'package.json').read_text())['version'],description='让画面，漫出边界。为 YouTube、哔哩哔哩与 X带来可调节的视频环境光。')
-m['host_permissions']=['https://www.youtube.com/*','https://www.bilibili.com/*','https://player.bilibili.com/*','https://live.bilibili.com/*','https://api.github.com/*','https://x.com/*','https://www.x.com/*','https://twitter.com/*','https://www.twitter.com/*']
-m['background']={'scripts':['scripts/halo-update.js','scripts/background.js']}
-m['permissions']=['storage','activeTab','nativeMessaging'];m['action']['default_title']='映光 Halo'
-m.pop('homepage_url',None)
-for e in m['content_scripts']:
- if 'scripts/bilibili.js' in e.get('js',[]):
-  e['js']=['scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/bilibili-player.js','scripts/bilibili.js']
-  e['matches']=['https://www.bilibili.com/*','https://player.bilibili.com/*','https://live.bilibili.com/*']
-  e['all_frames']=True
-m['content_scripts']=[e for e in m['content_scripts'] if 'scripts/halo-controls.js' not in e.get('js',[])]
-m['content_scripts'].append({'matches':['https://www.youtube.com/*'],'exclude_matches':['https://www.youtube.com/live_chat*'],'all_frames':True,'js':['scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/halo-controls.js'],'css':['styles/halo-youtube.css'],'run_at':'document_idle'})
-m['content_scripts'].append({'matches':['https://x.com/*','https://www.x.com/*','https://twitter.com/*','https://www.twitter.com/*'],'js':['scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/x-player.js','scripts/bilibili.js'],'css':['styles/halo-x.css'],'run_at':'document_idle'})
-(r/'dist/manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=2))
-resources=r/'Native/Halo/Halo Extension/Resources'
-shutil.copytree(r/'dist',resources,dirs_exist_ok=True,ignore=shutil.ignore_patterns('*.map'))
-chrome=build_dir('chromium')/'Chrome'
-shutil.copytree(r/'dist',chrome,dirs_exist_ok=True,ignore=shutil.ignore_patterns('*.map'))
-m['permissions']=['storage','activeTab']
-m['background']={'service_worker':'scripts/background.js'};m['minimum_chrome_version']='121'
-(chrome/'manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=2))
-set_current('chromium')
-print(f'Prepared Safari resources and Chromium package: {chrome}')
 
-# All browsers share the same prepared renderer and UI resources.
-runpy.run_path(str(r/'package-firefox.py'), run_name='__main__')
+root = Path(__file__).resolve().parent
+source = root / 'dist'
+manifest = json.loads((source / 'manifest.json').read_text())
+assert manifest['version'] == json.loads((root / 'package.json').read_text())['version'], 'Run npm run build first'
+
+def copy_clean(target, config):
+    if target.exists():
+        shutil.rmtree(target)
+    shutil.copytree(source, target)
+    (target / 'manifest.json').write_text(json.dumps(config, ensure_ascii=False, indent=2) + '\n')
+
+chrome = build_dir('chromium') / 'Chrome'
+chrome_manifest = {**manifest, 'minimum_chrome_version': '121'}
+copy_clean(chrome, chrome_manifest)
+set_current('chromium')
+safari_manifest = {**manifest, 'permissions': ['storage', 'activeTab', 'nativeMessaging'],
+                   'background': {'scripts': ['scripts/halo-update.js', 'scripts/background.js']}}
+copy_clean(root / 'Native/Halo/Halo Extension/Resources', safari_manifest)
+print(f'Prepared Chromium and Safari resources: {chrome}')
+runpy.run_path(str(root / 'package-firefox.py'), run_name='__main__')
