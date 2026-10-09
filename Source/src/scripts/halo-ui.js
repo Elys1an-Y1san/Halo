@@ -5,15 +5,15 @@ globalThis.HaloUI = {
     cinema: { blur: 60, spread: 100, brightness: 100 },
     wide: { blur: 85, spread: 150, brightness: 110 },
   },
-  defaults: { enabled: true, blur: 60, spread: 100, brightness: 100, quality: 'balanced', position: 'auto', profiles: [], lastCustom: null, anchor: null },
-  qualities: { eco: 15, balanced: 30, smooth: 60 },
+  defaults: { enabled: true, blur: 60, spread: 100, brightness: 100, quality: 'auto', position: 'auto', profiles: [], lastCustom: null, anchor: null },
+  qualities: { auto: 30, eco: 15, balanced: 30, smooth: 60 },
   light(value) {
     return Object.fromEntries([['blur',0,100,60],['spread',0,200,100],['brightness',20,180,100]].map(([key,min,max,fallback]) => [key, value?.[key] != null && Number.isFinite(Number(value[key])) ? Math.round(Math.max(min,Math.min(max,Number(value[key])))) : fallback]));
   },
   normalize(value = {}) {
     value = value || {};
     return { ...this.defaults, ...this.light(value), enabled: typeof value.enabled === 'boolean' ? value.enabled : true,
-      quality: Object.hasOwn(this.qualities,value.quality) ? value.quality : 'balanced',
+      quality: Object.hasOwn(this.qualities,value.quality) ? value.quality : 'auto',
       position: ['auto','left','right'].includes(value.position) ? value.position : 'auto',
       anchor: value.anchor && Number.isFinite(value.anchor.x) && Number.isFinite(value.anchor.y) ? {x:Math.max(0,Math.min(1,value.anchor.x)),y:Math.max(0,Math.min(1,value.anchor.y))} : null,
       lastCustom: value.lastCustom ? this.light(value.lastCustom) : null,
@@ -33,7 +33,7 @@ button:not(:disabled):not([data-static]):active{scale:0.96}
 button:disabled{cursor:default;opacity:.38}
 :focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-#panel{pointer-events:auto;position:absolute;right:0;bottom:50px;width:336px;max-width:100%;height:468px;max-height:calc(100dvh - var(--edge) * 2 - 50px);display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:0;padding:16px;background:var(--surface);border-radius:24px;box-shadow:0 0 0 1px #ffffff18,0 8px 24px #0003,0 24px 64px #0005;opacity:1;transform:translateY(0);transform-origin:bottom right;transition:opacity 180ms ease-out,transform 180ms ease-out;overflow:hidden}
+#panel{pointer-events:auto;position:absolute;right:0;bottom:50px;width:336px;max-width:100%;height:468px;max-height:calc(100dvh - var(--edge) * 2 - 50px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:0;padding:16px;background:var(--surface);border-radius:24px;box-shadow:0 0 0 1px #ffffff18,0 8px 24px #0003,0 24px 64px #0005;opacity:1;transform:translateY(0);transform-origin:bottom right;transition:opacity 180ms ease-out,transform 180ms ease-out;overflow:hidden}
 #panel[data-state=closed]{opacity:0;transform:translateY(6px);pointer-events:none;transition-duration:130ms}
 header{display:flex;justify-content:space-between;align-items:center;height:28px;margin-bottom:10px}
 h2{font-size:14px;font-weight:600;letter-spacing:.01em;margin:0;display:flex;gap:8px;align-items:center}
@@ -136,7 +136,7 @@ header,#toggle{display:none}
    <div class="save-form"><input id="profile-name" type="text" aria-label="方案名称" maxlength="24" placeholder="为当前光效命名" autocomplete="off"><button id="save-profile">保存</button></div>
   </section>
   <section id="view-settings" class="view" role="tabpanel" aria-labelledby="tab-settings" hidden>
-   <div class="preference-group"><label class="field">性能<select id="quality"><option value="eco">节能 · 15 帧/秒</option><option value="balanced">均衡 · 30 帧/秒</option><option value="smooth">流畅 · 60 帧/秒</option></select></label><p class="hint">只调整环境光采样，不改变视频帧率。</p><label class="field">位置<select id="position"><option value="custom" disabled>拖动位置</option><option value="auto">自动避让</option><option value="left">左侧</option><option value="right">右侧</option></select></label></div>
+   <div class="preference-group"><label class="field">性能<select id="quality"><option value="auto">自动 · 按负载调节</option><option value="eco">节能 · 15 帧/秒</option><option value="balanced">均衡 · 30 帧/秒</option><option value="smooth">流畅 · 60 帧/秒</option></select></label><p class="hint">自动在 15–30 帧/秒间调节；手动档保持固定上限，不改变视频帧率。</p><label class="field">位置<select id="position"><option value="custom" disabled>拖动位置</option><option value="auto">自动避让</option><option value="left">左侧</option><option value="right">右侧</option></select></label></div>
    <div class="update-row"><button id="check-update">检查更新</button><a id="release-link" hidden target="_blank" rel="noopener noreferrer">查看新版 ↗</a><button id="install-update" hidden>安装更新</button><span id="version"></span></div><p id="update-status" role="status" aria-live="polite"></p>
    <button id="reset-all" class="text-button">恢复全部偏好（保留方案）</button>
   </section>
@@ -239,7 +239,7 @@ header,#toggle{display:none}
       if (selected) mode = names[button.dataset.preset];
     });
     root.getElementById('mode-label').textContent = mode;
-    root.getElementById('quality').value = settings.quality || 'balanced';
+    root.getElementById('quality').value = settings.quality || 'auto';
     root.getElementById('position').value = settings.anchor ? 'custom' : settings.position || 'auto';
     root.getElementById('last-custom').disabled = !settings.lastCustom;
     const profiles = root.getElementById('profiles'), selected = profiles.value;
@@ -341,9 +341,11 @@ HaloUI.bindPreferences = function(root, { get, commit, compare, retry, place }) 
 };
 HaloUI.runtime = function(root, text, retry = false) {
   const status=root.getElementById('runtime-status');
-  const short = text.includes('无法连接') ? '未连接视频页，刷新后重试' : text.includes('已关闭') ? '已关闭 · 开启后应用参数' : text.includes('正在对比') ? '正在对比原画' : text.includes('设置将用于') ? '请打开所选网站的视频' : text;
+  const short = text.includes('连接已失效') ? '页面连接失效，请刷新' : text.includes('尚未获得') ? '请允许此网站访问权限' : text.includes('无法连接') ? '未连接视频页，刷新后重试' : text.includes('已关闭') ? '已关闭 · 开启后应用参数' : text.includes('正在对比') ? '正在对比原画' : text.includes('设置将用于') ? '请打开所选网站的视频' : text;
   if(status.textContent!==short){status.textContent=short;status.title=text;status.setAttribute('aria-label',text);}
-  root.getElementById('retry').hidden=!retry;
+  const button=root.getElementById('retry');
+  button.hidden=!retry;
+  button.textContent=typeof retry==='string'?retry:'重新采样';
 };
 HaloUI.place = function(host, settings, video) {
   if(document.body?.dataset.halo==='popup' || document.documentElement.hasAttribute('data-halo-wave'))return;

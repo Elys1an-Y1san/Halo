@@ -39,6 +39,8 @@ const server = http.createServer((req, res) => {
     await page.goto(`http://127.0.0.1:${server.address().port}/panel.html`);
     await page.waitForFunction(() => document.querySelector('#halo-youtube-layer')?.hidden === false);
     await page.evaluate(() => {
+      const quality=document.getElementById('halo-youtube-ui').shadowRoot.getElementById('quality');
+      quality.value='balanced';quality.dispatchEvent(new Event('change'));
       const runtime = HaloUI.runtime;
       HaloUI.runtime = (...args) => { metrics.runtime++; return runtime(...args); };
       const group = document.createElement('section');

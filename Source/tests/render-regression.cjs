@@ -4,8 +4,8 @@ vm.runInContext(fs.readFileSync(__dirname+'/../src/scripts/halo-video.js','utf8'
 const geometry = context.HaloVideo.geometry;
 const rect = {width:1280,height:720,left:20,top:40};
 const config = {blur:60,spread:100,brightness:110};
-assert.equal(geometry(rect,1920,1080,config).style.filter, 'blur(108px) brightness(110%)');
-assert.equal(geometry(rect,1920,1080,{...config,blur:0}).style.filter, 'blur(0px) brightness(110%)');
+assert.equal(geometry(rect,1920,1080,config).style.filter, 'blur(108px) brightness(calc(110% * var(--halo-tone, 1)))');
+assert.equal(geometry(rect,1920,1080,{...config,blur:0}).style.filter, 'blur(0px) brightness(calc(110% * var(--halo-tone, 1)))');
 const narrow = geometry(rect,1920,1080,{...config,spread:0});
 assert.equal(narrow.style.width,'1280px');assert.equal(narrow.style.left,'20px');
 const portrait = geometry(rect,1080,1920,{...config,spread:0});

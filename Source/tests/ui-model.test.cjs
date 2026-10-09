@@ -8,9 +8,9 @@ vm.runInNewContext(code,context);
 const ui=context.HaloUI;
 test('legacy and corrupt preferences normalize without losing valid light settings',()=>{
  const legacy=ui.normalize({enabled:false,brightness:81});
- assert.equal(legacy.enabled,false);assert.equal(legacy.brightness,81);assert.equal(legacy.quality,'balanced');
+ assert.equal(legacy.enabled,false);assert.equal(legacy.brightness,81);assert.equal(legacy.quality,'auto');
  const corrupt=ui.normalize({blur:Infinity,spread:-9,brightness:999,quality:'constructor',profiles:[null,{name:'safe',brightness:40}]});
- assert.equal(corrupt.blur,60);assert.equal(corrupt.spread,0);assert.equal(corrupt.brightness,180);assert.equal(corrupt.quality,'balanced');assert.equal(corrupt.profiles.length,1);
+ assert.equal(corrupt.blur,60);assert.equal(corrupt.spread,0);assert.equal(corrupt.brightness,180);assert.equal(corrupt.quality,'auto');assert.equal(corrupt.profiles.length,1);
 });
 test('profiles have bounded names and count',()=>{
  const value=ui.normalize({profiles:Array.from({length:50},()=>({name:'x'.repeat(100),blur:500}))});
@@ -30,4 +30,9 @@ test('drag anchors are bounded and corrupt saved coordinates are discarded',()=>
  assert.deepEqual(JSON.parse(JSON.stringify(ui.normalize({anchor:{x:-5,y:5}}).anchor)),{x:0,y:1});
  assert.equal(ui.normalize({anchor:{x:NaN,y:1}}).anchor,null);
  assert.equal(ui.normalize({anchor:{x:'0.5',y:1}}).anchor,null);
+});
+
+test('automatic quality is the new default while every saved manual choice survives',()=>{
+ assert.equal(ui.normalize().quality,'auto');
+ for(const quality of ['eco','balanced','smooth','auto'])assert.equal(ui.normalize({quality}).quality,quality);
 });

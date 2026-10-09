@@ -14,7 +14,7 @@
   check('late video becomes ready without refreshing',document.documentElement.hasAttribute('data-halo-youtube'));
   const edit=(id,value)=>{$(id).value=value;$(id).dispatchEvent(new Event('change'));};
   edit('blur',72);edit('brightness',130);edit('spread',150);await sleep(180);
-  check('preferences drive actual canvas geometry',layer().querySelector('canvas').style.filter.includes('brightness(130%)'));
+  check('preferences drive actual canvas geometry',layer().querySelector('canvas').style.filter.includes('brightness(calc(130% * var(--halo-tone, 1)))'));
   check('site preferences retain existing storage key',JSON.parse(localStorage.getItem('halo-youtube-v1')).blur===72);
   $('toggle').click();await sleep(300);$('compare').click();await sleep(50);
   check('comparison hides only Halo rendering',layer().hidden&&JSON.parse(localStorage.getItem('halo-youtube-v1')).enabled);

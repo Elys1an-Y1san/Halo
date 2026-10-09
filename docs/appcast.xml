@@ -4,15 +4,16 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>Halo Safari 更新</title>
     <item>
-      <title>Halo 1.2.1</title>
-      <description>使用独立视频环境光核心，改善渲染调度，修复哔哩哔哩滚动小窗闪屏，并区分更新查询的通信与网络错误。</description>
-      <sparkle:version>20</sparkle:version>
-      <sparkle:shortVersionString>1.2.1</sparkle:shortVersionString>
+      <title>Halo 1.2.2</title>
+      <description>新增光效平滑、明暗自适应与自动性能档，改善面板连接恢复和错误提示布局。</description>
+      <sparkle:version>21</sparkle:version>
+      <sparkle:shortVersionString>1.2.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://github.com/Elys1an-Y1san/Halo/releases/download/v1.2.1/Halo-Safari-1.2.1.tar.xz" sparkle:edSignature="E9RU/kv+YW4KUxcxKnpUqy+7aVGtOBb8Fom/AeCS49ruuet7cIgT71Nuixb4YFV+puVpBrB79XkZ4jfO87GGCA==" length="1825392" type="application/octet-stream"></enclosure>
+      <enclosure url="https://github.com/Elys1an-Y1san/Halo/releases/download/v1.2.2/Halo-Safari-1.2.2.tar.xz" sparkle:edSignature="NBa8Hd3GZO0WV1rc8UNS8v1XybL5dIZ6URgV0ZwpQ8xe6kL4xCW31u8lRZYg+pt8fG61Qw6oxFDDkjoQCxM5CA==" length="1827828" type="application/octet-stream"></enclosure>
     </item>
   </channel>
-</rss><!-- sparkle-signatures:
-edSignature: YSdeOvn7/ea94wRHqEd8RQM3Vpzy2zp4dOPdiToLudNOfxBwCtykWJndwmOFWbeOwE804u3kdln/84E3ngrdCA==
-length: 1150
+</rss>
+<!-- sparkle-signatures:
+edSignature: VqEvGBPnUV+oHu7u2VPUW6DGxgM+QotkXd+Rw+I+tgvjKgQeGDRGQaGCSwfNqm6s02qQMhZWR+ugvTl8FOqMBA==
+length: 1112
 -->

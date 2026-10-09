@@ -29,6 +29,10 @@
   let ctx;
   const acquireContext = () => { try { ctx = canvas.getContext('2d', { alpha: false }); } catch { ctx = null; } };
   acquireContext();
+  const light = HaloVideo.createLightProcessor();
+  const adaptive = HaloVideo.createAdaptiveQuality();
+  let activeQuality = settings.quality, callbackLag = 0;
+  const samplingRate = () => settings.quality === 'auto' ? adaptive.fps : HaloUI.qualities[settings.quality];
 
   const host = document.createElement('div');
   host.id = hostId;
@@ -126,11 +130,14 @@
   const draw = () => {
     if (!canDraw()) { syncLayer(); return; }
     const source = video.srcObject || video.currentSrc || video.src;
-    if (source !== observedSource) { observedSource = source; failedSource = null; renderError = false; drawFailures = 0; drawn = false; }
+    if (source !== observedSource) { observedSource = source; failedSource = null; renderError = false; drawFailures = 0; drawn = false; light.reset(); adaptive.reset(); }
     if (failedSource === source) { drawn = false; syncLayer(); return; }
     try {
-      if (geometryDirty) geometry();
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const started = performance.now();
+      const resized = geometryDirty && geometry();
+      light.draw(ctx, video, started, settings.brightness, !drawn || resized || video.paused || video.seeking);
+      if (settings.quality === 'auto' && !video.paused) adaptive.observe(started, performance.now() - started, callbackLag);
+      callbackLag = 0;
       renderError = false; drawFailures = 0;
       drawn = true;
       syncLayer();
@@ -150,30 +157,35 @@
     const generation = frameGeneration;
     if (video.requestVideoFrameCallback) {
       frameOwner = video;
-      frameId = video.requestVideoFrameCallback((now) => {
+      frameId = video.requestVideoFrameCallback((now, metadata) => {
         if (generation !== frameGeneration) return;
         frameId = null; frameOwner = null;
-        if (now - lastDraw >= 1000 / HaloUI.qualities[settings.quality] - .5) { lastDraw = now; draw(); }
+        callbackLag = Math.max(0, now - (metadata?.expectedDisplayTime ?? now));
+        if (now - lastDraw >= 1000 / samplingRate() - .5) { lastDraw = now; draw(); }
         scheduleFrame();
       });
     } else {
+      const requested = performance.now();
       rafId = requestAnimationFrame((now) => {
         if (generation !== frameGeneration) return;
         rafId = null;
-        if (now - lastDraw >= 1000 / HaloUI.qualities[settings.quality] - .5) { lastDraw = now; draw(); }
+        callbackLag = Math.max(0, now - requested - 1000 / 60);
+        if (now - lastDraw >= 1000 / samplingRate() - .5) { lastDraw = now; draw(); }
         scheduleFrame();
       });
     }
   };
   function update() {
+    if (activeQuality !== settings.quality) { activeQuality = settings.quality; adaptive.reset(); }
     if (document.hidden || suspended) { cancelFrame(); syncLayer(); showRuntime(); return; }
     syncHost();
     cancelFrame(); geometryDirty = true; draw(); syncLayer(); scheduleFrame();
     showRuntime(); HaloUI.place(host,settings,video);
   }
-  const events = ['loadeddata', 'loadedmetadata', 'canplay', 'playing', 'play', 'pause', 'seeked', 'ended', 'resize', 'error', 'enterpictureinpicture', 'leavepictureinpicture', 'webkitpresentationmodechanged'];
-  const onEmpty = () => { drawn = false; failedSource = null; ctx?.clearRect(0, 0, canvas.width, canvas.height); update(); };
-  const onLoad = () => { failedSource = null; renderError = false; drawFailures = 0; drawn = false; update(); };
+  const events = ['loadeddata', 'loadedmetadata', 'canplay', 'playing', 'play', 'pause', 'ended', 'resize', 'error', 'enterpictureinpicture', 'leavepictureinpicture', 'webkitpresentationmodechanged'];
+  const onSeek = () => { light.reset(); drawn = false; update(); };
+  const onEmpty = () => { light.reset(); drawn = false; failedSource = null; ctx?.clearRect(0, 0, canvas.width, canvas.height); update(); };
+  const onLoad = () => { light.reset(); adaptive.reset(); failedSource = null; renderError = false; drawFailures = 0; drawn = false; update(); };
   const intersection = new IntersectionObserver((entries) => {
     for (const entry of entries) if (entry.target === video) { inViewport = entry.isIntersecting; update(); }
   });
@@ -183,14 +195,17 @@
     cancelFrame();
     if (video) {
       for (const event of events) video.removeEventListener(event, update);
+      video.removeEventListener('seeked', onSeek);
       video.removeEventListener('emptied', onEmpty);
       video.removeEventListener('loadstart', onLoad);
       intersection.unobserve(video); resize.unobserve(video);
     }
+    light.reset(); adaptive.reset(); callbackLag = 0;
     video = next; renderError = false; drawFailures = 0; drawn = false; failedSource = null; observedSource = null; inViewport = true; lastDraw = -Infinity;
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     if (video) {
       for (const event of events) video.addEventListener(event, update);
+      video.addEventListener('seeked', onSeek);
       video.addEventListener('emptied', onEmpty);
       video.addEventListener('loadstart', onLoad);
       intersection.observe(video); resize.observe(video);
@@ -294,15 +309,21 @@
     if(video?.error)return '播放器尚未提供可用画面';
     if(failedSource !== null)return '暂时无法读取视频画面，请重试';
     if(!isX && !isYouTube && !video && document.querySelector('.bpx-player-container[data-screen="mini"] video'))return '小窗播放中，返回主播放器后恢复环境光';
-    if(!video || video.readyState<2)return '等待视频画面';
+    if(!supported())return '当前页面不支持环境光，请打开视频播放页';
+    if(!video)return '等待视频画面，请开始播放';
+    if(video.readyState<2)return '等待视频画面加载';
     if(!visible())return '已暂停渲染';
     if(renderError)return '画面采样暂不可用，请重试';
     if(!drawn)return '等待环境光渲染';
-    return video.paused?'视频已暂停，保留当前光效':'环境光正在生效';
+    if(video.paused)return '视频已暂停，保留当前光效';
+    if(light.limited)return '环境光正在生效；此视频不支持亮度自适应';
+    return settings.quality==='auto'?`环境光正在生效 · 自动 ${adaptive.fps} 帧/秒`:'环境光正在生效';
   };
+  const canRetry = () => !ctx || !!video?.error || failedSource !== null || renderError || (supported() && !video);
+  const retryRendering = () => { acquireContext(); light.reset(); adaptive.reset(); drawn=false; failedSource=null; renderError=false; drawFailures=0; candidatesDirty=true; discover(); update(); };
   let lastRuntime, lastRetry;
   const showRuntime = () => {
-    const text = runtimeState(), retry = !ctx || !!video?.error || failedSource !== null || renderError;
+    const text = runtimeState(), retry = canRetry();
     if (text === lastRuntime && retry === lastRetry) return;
     lastRuntime = text; lastRetry = retry;
     HaloUI.runtime(shadow, text, retry);
@@ -312,9 +333,9 @@
   HaloUI.bindPreferences(shadow,{get:()=>settings,
     commit:next=>{++preferenceRevision;if(next.position!==settings.position || next.anchor!==settings.anchor)wave.finish();const previous=settings.enabled;settings=normalize(next);updateControls(previous);persist();},
     compare:value=>{localCompare(value);clearInterval(compareHeartbeat);if(value)compareHeartbeat=setInterval(()=>localCompare(true),1000);return true;},
-    retry:()=>{acquireContext();failedSource=null;renderError=false;drawFailures=0;discover();update();},place:()=>HaloUI.place(host,settings,video),
+    retry:retryRendering,place:()=>HaloUI.place(host,settings,video),
   });
-  api.runtime.onMessage.addListener((message, sender, reply) => { if(sender.id && sender.id !== api.runtime.id)return; if(message?.type==='halo-retry'){acquireContext();failedSource=null;renderError=false;drawFailures=0;discover();update();reply({ok:true});return;} if(message.type==='halo-status'){reply({status:runtimeState()});return;} if(message.type==='halo-compare'){localCompare(!!message.value);reply({ok:true});return;} if (message.type === 'halo-open') { discover(); if (!supported() || !video) { reply({ok:false}); return; } setOpen(true); reply({ok:true}); } });
+  api.runtime.onMessage.addListener((message, sender, reply) => { if(sender.id && sender.id !== api.runtime.id)return; if(message?.type==='halo-retry'){retryRendering();reply({ok:true});return;} if(message.type==='halo-status'){reply({status:runtimeState(),retry:canRetry()});return;} if(message.type==='halo-compare'){localCompare(!!message.value);reply({ok:true});return;} if (message.type === 'halo-open') { discover(); if (!supported() || !video) { reply({ok:false}); return; } setOpen(true); reply({ok:true}); } });
   const start = async () => {
     const revision = preferenceRevision;
     try { const saved = await api.storage.local.get(KEY); if(revision === preferenceRevision)settings = normalize(saved[KEY]); } catch { /* Defaults work without persistence. */ }

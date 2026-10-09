@@ -10,7 +10,7 @@
     input.value = value; input.dispatchEvent(new Event('change', {bubbles:true}));
     check(name + ': change-only input updates displayed value', root.getElementById(name+'-value').value === String(value));
   }
-  check('change-only input reaches the live renderer', canvas.style.filter === 'blur(0px) brightness(20%)' && parseFloat(canvas.style.width) === document.querySelector('video').getBoundingClientRect().width);
+  check('change-only input reaches the live renderer', canvas.style.filter === 'blur(0px) brightness(calc(20% * var(--halo-tone, 1)))' && parseFloat(canvas.style.width) === document.querySelector('video').getBoundingClientRect().width);
   await new Promise(r => setTimeout(r, 500));
   const saved = JSON.parse(localStorage.getItem('ambientlight-bilibili-v1'));
   check('change-only input persists', saved.brightness === 20 && saved.blur === 0 && saved.spread === 0);
