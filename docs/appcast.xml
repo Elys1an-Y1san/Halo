@@ -1,19 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
---><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
-  <channel>
-    <title>Halo Safari 更新</title>
-    <item>
-      <title>Halo 1.2.2</title>
-      <description>新增光效平滑、明暗自适应与自动性能档，改善面板连接恢复和错误提示布局。</description>
-      <sparkle:version>21</sparkle:version>
-      <sparkle:shortVersionString>1.2.2</sparkle:shortVersionString>
-      <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://github.com/Elys1an-Y1san/Halo/releases/download/v1.2.2/Halo-Safari-1.2.2.tar.xz" sparkle:edSignature="NBa8Hd3GZO0WV1rc8UNS8v1XybL5dIZ6URgV0ZwpQ8xe6kL4xCW31u8lRZYg+pt8fG61Qw6oxFDDkjoQCxM5CA==" length="1827828" type="application/octet-stream"></enclosure>
-    </item>
-  </channel>
-</rss>
-<!-- sparkle-signatures:
-edSignature: VqEvGBPnUV+oHu7u2VPUW6DGxgM+QotkXd+Rw+I+tgvjKgQeGDRGQaGCSwfNqm6s02qQMhZWR+ugvTl8FOqMBA==
-length: 1112
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0"><channel><title>Halo Safari 更新</title><item><title>Halo 1.3.1</title><description>全屏透明使用引导，居中标志与实际操作教学；简化控制面板，改善环境光开关与边缘动效。</description><sparkle:version>23</sparkle:version><sparkle:shortVersionString>1.3.1</sparkle:shortVersionString><sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion><enclosure url="https://github.com/Elys1an-Y1san/Halo/releases/download/v1.3.1/Halo-Safari-1.3.1.tar.xz" sparkle:edSignature="JSDym1jjTF0k88QJoAs5qqfkXrRVyw4dWfrEYxQx6khJve7FVcokvmyCc1fnEbZ10dFAJAeKvCUiCBJbKp7wAQ==" length="1840428" type="application/octet-stream"></enclosure></item></channel></rss><!-- sparkle-signatures:
+edSignature: DwJJMXKQxlYd9LFCrKMFp0YH16Gn7TMc9D7JN1pZudzhTRR3Vzzm+fSIbkWOiicX13R3QqDz/sfurH3lPgQBDw==
+length: 1065
 -->
