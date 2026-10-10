@@ -51,6 +51,7 @@
         "scripts/halo-wave.js",
         "scripts/halo-video.js",
         "scripts/youtube-player.js",
+        "scripts/halo-onboarding.js",
         "scripts/halo-engine.js"
       ],
       "css": [
@@ -74,6 +75,7 @@
         "scripts/halo-wave.js",
         "scripts/halo-video.js",
         "scripts/bilibili-player.js",
+        "scripts/halo-onboarding.js",
         "scripts/halo-engine.js"
       ],
       "css": [
@@ -95,12 +97,30 @@
         "scripts/halo-wave.js",
         "scripts/halo-video.js",
         "scripts/x-player.js",
+        "scripts/halo-onboarding.js",
         "scripts/halo-engine.js"
       ],
       "css": [
         "styles/halo-x.css"
       ],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "images/icon-128.png"
+      ],
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://www.bilibili.com/*",
+        "https://player.bilibili.com/*",
+        "https://live.bilibili.com/*",
+        "https://x.com/*",
+        "https://www.x.com/*",
+        "https://twitter.com/*",
+        "https://www.twitter.com/*"
+      ]
     }
   ]
 }

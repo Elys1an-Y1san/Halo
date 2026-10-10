@@ -16,7 +16,7 @@ test('Firefox has its own stable identity and no MAIN-world injection', () => {
   assert.deepEqual(manifest.browser_specific_settings.gecko.data_collection_permissions, {required: ['none']});
   const main = manifest.content_scripts.filter(entry => entry.world === 'MAIN');
   assert.equal(main.length, 0);
-  assert.equal(manifest.web_accessible_resources, undefined);
+  assert.deepEqual(manifest.web_accessible_resources.flatMap(entry => entry.resources), ['images/icon-128.png']);
 });
 test('Firefox uses the identical prepared scripts as the other browser packages', () => {
   for (const name of fs.readdirSync(path.join(root, 'Builds/chromium', version, 'Chrome/scripts'))) {

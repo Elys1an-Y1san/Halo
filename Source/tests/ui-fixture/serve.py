@@ -2,6 +2,7 @@
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 import re
+import os
 ROOT = Path(__file__).resolve().parents[2]
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -20,7 +21,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_response(200); self.send_header('Content-Type', 'text/javascript'); self.end_headers(); self.wfile.write(file.read_bytes()); return
         if route.startswith('/package/'):
             self.directory = str(ROOT.parent / 'Builds/chromium/current/Chrome'); self.path = self.path.removeprefix('/package'); super().do_GET(); return
-        if route in ('/youtube-engine.html','/panel.html'):
+        if route == '/onboarding.html':
+            content = (ROOT / 'tests/ui-fixture/onboarding.html').read_text()
+        elif route in ('/youtube-engine.html','/panel.html'):
             content = (ROOT / 'tests/ui-fixture/youtube-engine.html').read_text()
             if route == '/panel.html': content = content.replace('<script src="youtube-engine-test.js"></script>', '')
         elif route == '/x-test.html':
@@ -40,9 +43,9 @@ class Handler(SimpleHTTPRequestHandler):
         elif route == '/suite.html':
             content = (ROOT / 'tests/ui-fixture/suite.html').read_text()
         elif route == '/duplicate-init.html':
-            content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text().replace('<script src="scripts/halo-video.js"></script><script src="scripts/halo-engine.js"></script>', '<script src="duplicate-storage.js"></script><script src="scripts/halo-video.js"></script><script src="scripts/halo-engine.js"></script><script src="scripts/halo-video.js"></script><script src="scripts/halo-engine.js"></script>').replace('bilibili-test.js', 'duplicate-test.js')
+            content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text().replace('<script src="scripts/halo-video.js"></script><script src="scripts/halo-onboarding.js"></script><script src="scripts/halo-engine.js"></script>', '<script src="duplicate-storage.js"></script><script src="scripts/halo-video.js"></script><script src="scripts/halo-onboarding.js"></script><script src="scripts/halo-engine.js"></script><script src="scripts/halo-video.js"></script><script src="scripts/halo-onboarding.js"></script><script src="scripts/halo-engine.js"></script>').replace('bilibili-test.js', 'duplicate-test.js')
         elif route == '/parameter-race.html':
-            content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text().replace('<script src="scripts/halo-video.js"></script><script src="scripts/halo-engine.js"></script>', '<script src="parameter-race-storage.js"></script><script src="scripts/halo-video.js"></script><script src="scripts/halo-engine.js"></script>').replace('bilibili-test.js', 'parameter-race-test.js')
+            content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text().replace('<script src="scripts/halo-video.js"></script><script src="scripts/halo-onboarding.js"></script><script src="scripts/halo-engine.js"></script>', '<script src="parameter-race-storage.js"></script><script src="scripts/halo-video.js"></script><script src="scripts/halo-onboarding.js"></script><script src="scripts/halo-engine.js"></script>').replace('bilibili-test.js', 'parameter-race-test.js')
         elif route == '/bilibili-mini.html':
             content = (ROOT / 'tests/ui-fixture/bilibili-panel.html').read_text().replace('<video ', '<div class="bpx-player-container" data-screen="normal"><video ').replace('</video>', '</video></div>').replace('bilibili-test.js', 'bilibili-mini-test.js')
         elif route == '/bilibili-panel.html':
@@ -66,4 +69,4 @@ class FixtureServer(ThreadingHTTPServer):
     # backlog of five can drop scripts during rapid isolated-context tests.
     request_queue_size = 64
 
-FixtureServer(('127.0.0.1', 8765), Handler).serve_forever()
+FixtureServer(('127.0.0.1', int(os.environ.get('HALO_FIXTURE_PORT',8765))), Handler).serve_forever()

@@ -10,19 +10,19 @@ test('legacy and corrupt preferences normalize without losing valid light settin
  const legacy=ui.normalize({enabled:false,brightness:81});
  assert.equal(legacy.enabled,false);assert.equal(legacy.brightness,81);assert.equal(legacy.quality,'auto');
  const corrupt=ui.normalize({blur:Infinity,spread:-9,brightness:999,quality:'constructor',profiles:[null,{name:'safe',brightness:40}]});
- assert.equal(corrupt.blur,60);assert.equal(corrupt.spread,0);assert.equal(corrupt.brightness,180);assert.equal(corrupt.quality,'auto');assert.equal(corrupt.profiles.length,1);
+ assert.equal(corrupt.blur,60);assert.equal(corrupt.spread,0);assert.equal(corrupt.brightness,180);assert.equal(corrupt.quality,'auto');assert.equal('profiles' in corrupt,false);
 });
-test('profiles have bounded names and count',()=>{
- const value=ui.normalize({profiles:Array.from({length:50},()=>({name:'x'.repeat(100),blur:500}))});
- assert.equal(value.profiles.length,12);assert.equal(value.profiles[0].name.length,24);assert.equal(value.profiles[0].blur,100);
+test('removed profile fields cannot return from saved preferences',()=>{
+ const value=ui.normalize({profiles:[{name:'old',brightness:90}],lastCustom:{brightness:40},brightness:115});
+ assert.equal('profiles' in value,false);assert.equal('lastCustom' in value,false);assert.equal(value.brightness,115);
 });
 test('automatic placement chooses the side outside a right-aligned player',()=>{
- const host={dataset:{},style:{},shadowRoot:{getElementById:()=>({hidden:false,getBoundingClientRect:()=>({height:468})})}};
+ const host={dataset:{},style:{},shadowRoot:{getElementById:id=>id==='panel'?({hidden:false,getBoundingClientRect:()=>({height:468})}):null}};
  ui.place(host,{position:'auto'},{getBoundingClientRect:()=>({left:700,right:1200,top:60,bottom:650})});
  assert.equal(host.dataset.side,'left');assert.equal(host.style.left,'24px');
 });
 test('automatic placement moves above a low player when side placement overlaps',()=>{
- const host={dataset:{},style:{},shadowRoot:{getElementById:()=>({hidden:true})}};
+ const host={dataset:{},style:{},shadowRoot:{getElementById:id=>id==='panel'?({hidden:true}):null}};
  ui.place(host,{position:'auto'},{getBoundingClientRect:()=>({left:0,right:1280,top:200,bottom:720})});
  assert.equal(host.dataset.top,'true');assert.equal(host.style.top,'24px');
 });

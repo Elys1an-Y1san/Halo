@@ -15,13 +15,13 @@ for directory in packages:
   refs+=entry.get('js',[])+entry.get('css',[])
  for entry in m.get('web_accessible_resources', []):refs+=entry['resources']
  for file in [*refs,'credits.html','LICENSE']:assert (directory/file).is_file(),file
- assert set(m['host_permissions'])=={'https://www.youtube.com/*','https://www.bilibili.com/*','https://player.bilibili.com/*','https://live.bilibili.com/*','https://api.github.com/*','https://x.com/*','https://www.x.com/*','https://twitter.com/*','https://www.twitter.com/*'}
+ assert set(m['host_permissions'])-({'https://github.com/*','https://release-assets.githubusercontent.com/*'} if directory.name=='Chrome' else set())=={'https://www.youtube.com/*','https://www.bilibili.com/*','https://player.bilibili.com/*','https://live.bilibili.com/*','https://api.github.com/*','https://x.com/*','https://www.x.com/*','https://twitter.com/*','https://www.twitter.com/*'}
  assert 'service_worker' in bg if directory.name=='Chrome' else 'scripts' in bg
  print('PASS',directory.name,len(refs),'manifest resources')
 print('PASS: Safari/Chrome/Firefox manifests, resources, license and host scope')
 
 from hashlib import sha256
-ui_files = ['options.html','credits.html','scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/halo-controls.js','scripts/halo-engine.js','scripts/halo-video.js','scripts/youtube-player.js','scripts/bilibili-player.js','styles/halo-youtube.css','scripts/x-player.js','styles/halo-x.css','styles/halo-popup.css']
+ui_files = ['scripts/halo-local-update.js','options.html','update.html','scripts/halo-onboarding.js','scripts/halo-update-page.js','styles/halo-pages.css','credits.html','scripts/halo-ui.js','scripts/halo-update.js','scripts/halo-wave.js','scripts/halo-controls.js','scripts/halo-engine.js','scripts/halo-video.js','scripts/youtube-player.js','scripts/bilibili-player.js','styles/halo-youtube.css','scripts/x-player.js','styles/halo-x.css','styles/halo-popup.css']
 for file in ui_files:
  expected = sha256((root/'Source/src'/file).read_bytes()).digest()
  for directory in [*packages,root/'Source/dist']:

@@ -26,6 +26,7 @@
 AA0000000000000000000001 /* credits.html in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002; };
 BB0000000000000000000001 = {isa = PBXBuildFile; fileRef = BB0000000000000000000002; };
 BB0000000000000000000003 = {isa = PBXBuildFile; fileRef = BB0000000000000000000002; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+AA0000000000000000000003 /* update.html in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000004; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,6 +74,7 @@ BB0000000000000000000004 = {isa = PBXCopyFilesBuildPhase; dstPath = ""; dstSubfo
 		D06C15F0306CE35F0047C6AF /* options.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = options.html; path = Resources/options.html; sourceTree = "<group>"; };
 AA0000000000000000000002 /* credits.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = credits.html; path = Resources/credits.html; sourceTree = "<group>"; };
 BB0000000000000000000002 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = ../Frameworks/Sparkle.framework; sourceTree = "<group>"; };
+AA0000000000000000000004 /* update.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = update.html; path = Resources/update.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,6 +153,7 @@ BB0000000000000000000002,
 				D06C15EE306CE35F0047C6AF /* scripts */,
 				D06C15EF306CE35F0047C6AF /* manifest.json */,
 				D06C15F0306CE35F0047C6AF /* options.html */,
+AA0000000000000000000004 /* update.html */,
  AA0000000000000000000002 /* credits.html */,
 			);
 			name = Resources;
@@ -254,6 +257,7 @@ BB0000000000000000000004,
 				D06C15F1306CE35F0047C6AF /* LICENSE in Resources */,
 				D06C15F4306CE35F0047C6AF /* scripts in Resources */,
 				D06C15F6306CE35F0047C6AF /* options.html in Resources */,
+AA0000000000000000000003 /* update.html in Resources */,
  AA0000000000000000000001 /* credits.html in Resources */,
 			);
 		};
@@ -425,7 +429,7 @@ BB0000000000000000000004,
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -439,7 +443,7 @@ BB0000000000000000000004,
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.3.1;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -459,7 +463,7 @@ BB0000000000000000000004,
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -473,7 +477,7 @@ BB0000000000000000000004,
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.3.1;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -499,7 +503,7 @@ BB0000000000000000000004,
 MACOSX_DEPLOYMENT_TARGET = 12.0;
 CODE_SIGN_ENTITLEMENTS = Halo/Halo.entitlements;
 FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -515,7 +519,7 @@ FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.3.1;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -544,7 +548,7 @@ FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
 MACOSX_DEPLOYMENT_TARGET = 12.0;
 CODE_SIGN_ENTITLEMENTS = Halo/Halo.entitlements;
 FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -560,7 +564,7 @@ FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.2.2;
+				MARKETING_VERSION = 1.3.1;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,

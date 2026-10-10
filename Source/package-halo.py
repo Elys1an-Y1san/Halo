@@ -17,7 +17,7 @@ def copy_clean(target, config):
     (target / 'manifest.json').write_text(json.dumps(config, ensure_ascii=False, indent=2) + '\n')
 
 chrome = build_dir('chromium') / 'Chrome'
-chrome_manifest = {**manifest, 'minimum_chrome_version': '121'}
+chrome_manifest = {**manifest, 'minimum_chrome_version': '121', 'host_permissions': [*manifest['host_permissions'], 'https://github.com/*', 'https://release-assets.githubusercontent.com/*']}
 copy_clean(chrome, chrome_manifest)
 set_current('chromium')
 safari_manifest = {**manifest, 'permissions': ['storage', 'activeTab', 'nativeMessaging'],

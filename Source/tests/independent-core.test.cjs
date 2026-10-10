@@ -8,7 +8,9 @@ test('all sites load only the independent isolated Halo engine',()=>{
   assert(entry.js.includes('scripts/halo-video.js'));
   assert(!entry.js.some(name=>/injected|content-main|content\.js/.test(name)));
  }
- assert.equal(manifest.web_accessible_resources,undefined);
+ assert.equal(manifest.web_accessible_resources.length,1);
+ assert.deepEqual(manifest.web_accessible_resources[0].resources,['images/icon-128.png']);
+ assert.deepEqual(manifest.web_accessible_resources[0].matches,[...new Set(manifest.content_scripts.flatMap(e=>e.matches))]);
  const scripts=fs.readdirSync(path.join(root,'src/scripts'));
  assert(!scripts.includes('libs'));
  for(const name of scripts){

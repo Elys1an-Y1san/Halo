@@ -18,7 +18,16 @@
     if (!value || value.draft || value.prerelease || !parseVersion(value.tag_name)) throw new Error('invalid_release');
     const url = new URL(value.html_url);
     if (url.origin !== 'https://github.com' || !url.pathname.startsWith(`/${repository}/releases/tag/`)) throw new Error('invalid_release');
-    return {version:value.tag_name.replace(/^v/,''),url:url.href};
+    const version=value.tag_name.replace(/^v/,'');
+    if (url.pathname !== `/${repository}/releases/tag/${value.tag_name}` || url.search || url.hash || url.username || url.password) throw new Error('invalid_release');
+    const assets={},digests={};
+    for (const asset of value.assets || []) {
+      const expected={chromium:`Halo-Chrome-${version}.zip`,firefox:`Halo-Firefox-${version}-unsigned.zip`,safari:`Halo-Safari-${version}.zip`};
+      for (const [platform,name] of Object.entries(expected)) {
+        if (asset.name===name && asset.browser_download_url===`https://github.com/${repository}/releases/download/${value.tag_name}/${name}`) { assets[platform]=asset.browser_download_url; if(/^sha256:[a-f0-9]{64}$/.test(asset.digest||''))digests[platform]=asset.digest.slice(7); }
+      }
+    }
+    return {version,url:url.href,assets,digests};
   };
   // "latest" is a publisher-selected release, not necessarily the highest version.
   const selectRelease = values => {
@@ -32,7 +41,7 @@
     create({ storage, fetcher = (...args) => fetch(...args), now = () => Date.now(), timeoutMS = 8000 }) {
       const pending = new Map();
       const key='halo-release-cache-v1', ttl=6*60*60*1000;
-      const result=(release,current,checkedAt,cached) => ({ok:true,current,latest:release.version,available:compareVersions(release.version,current)>0,url:release.url,checkedAt,cached});
+      const result=(release,current,checkedAt,cached) => ({ok:true,current,latest:release.version,available:compareVersions(release.version,current)>0,url:release.url,assets:release.assets,digests:release.digests,checkedAt,cached});
       return {
         check(current, force=false) {
           const requestKey = `${current}:${force}`;
@@ -43,7 +52,7 @@
               try {
                 const cache=(await storage.get(key))[key];
                 if (cache && now()-cache.checkedAt>=0 && now()-cache.checkedAt<ttl) {
-                  const release=validateRelease({tag_name:cache.version,html_url:cache.url});
+                  const release=validateRelease({tag_name:cache.url?.split('/').pop(),html_url:cache.url,assets:cache.assetsList});
                   return result(release,current,cache.checkedAt,true);
                 }
               } catch { /* A damaged cache must not block a fresh query. */ }
@@ -53,7 +62,7 @@
               const response=await fetcher(endpoint,{headers:{Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},credentials:'omit',redirect:'error',cache:'no-store',signal:controller.signal});
               if (!response.ok) throw new Error(response.status===404?'no_release':response.status===403||response.status===429?'rate_limit':'network');
               const release=selectRelease(await response.json()),checkedAt=now();
-              try { await storage.set({[key]:{...release,checkedAt}}); } catch { /* Successful network result remains usable without caching. */ }
+              try { await storage.set({[key]:{...release,assetsList:Object.entries(release.assets).map(([platform,url])=>({name:url.split('/').pop(),browser_download_url:url,digest:release.digests[platform]?'sha256:'+release.digests[platform]:undefined})),checkedAt}}); } catch { /* Successful network result remains usable without caching. */ }
               return result(release,current,checkedAt,false);
             } catch(error) {
               const code=['no_release','rate_limit','invalid_release'].includes(error.message)?error.message:'network';

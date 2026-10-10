@@ -28,3 +28,21 @@ test('empty publication list reports no release, never latest',async()=>{
  const service=updates.create({storage:store(),fetcher:async()=>response([])});
  assert.equal((await service.check('1.0.5',true)).code,'no_release');
 });
+test('download assets are exact repository, version and platform matches, including cache',async()=>{
+ const storage=store(),good='https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.10/Halo-Chrome-1.0.10.zip';
+ const data={...release(),assets:[{name:'Halo-Chrome-1.0.10.zip',browser_download_url:good},{name:'Halo-Firefox-1.0.10-unsigned.zip',browser_download_url:'https://evil.example/firefox.zip'}]};
+ const service=updates.create({storage,fetcher:async()=>response(data)});
+ const first=await service.check('1.0.2');assert.equal(first.assets.chromium,good);assert.equal(first.assets.firefox,undefined);
+ assert.equal((await service.check('1.0.2')).assets.chromium,good);
+});
+test('reject mismatched release tag and URL even on the right repository',async()=>{
+ const service=updates.create({storage:store(),fetcher:async()=>response(release('v1.0.10','https://github.com/Elys1an-Y1san/Halo/releases/tag/v1.0.9'))});
+ assert.equal((await service.check('1.0.2')).code,'invalid_release');
+});
+test('publisher SHA256 survives fresh and cached queries, malformed digest is omitted',async()=>{
+ const storage=store(),url='https://github.com/Elys1an-Y1san/Halo/releases/download/v1.0.10/Halo-Chrome-1.0.10.zip';
+ const data={...release(),assets:[{name:'Halo-Chrome-1.0.10.zip',browser_download_url:url,digest:'sha256:'+'a'.repeat(64)}]};
+ const service=updates.create({storage,fetcher:async()=>response(data)});
+ assert.equal((await service.check('1.0.2')).digests.chromium,'a'.repeat(64));assert.equal((await service.check('1.0.2')).digests.chromium,'a'.repeat(64));
+ data.assets[0].digest='sha256:bad';assert.equal((await service.check('1.0.2',true)).digests.chromium,undefined);
+});

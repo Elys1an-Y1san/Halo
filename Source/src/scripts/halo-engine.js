@@ -46,22 +46,24 @@
   HaloUI.bindUpdates(shadow, api);
   const panelMotion = HaloUI.createPanel(shadow);
   const wave = HaloWave.create({
-    host, trigger: () => { panelMotion.settle(); return panelMotion.isOpen ? $('enabled') : $('toggle'); },
+    host, trigger: () => { panelMotion.settle(); return panelMotion.isOpen ? $('panel') : $('toggle'); },
     layers: () => [layer], ready: () => canDraw() && drawn,
     themeAttribute, animateSurfaces: !isX,
     surfaceSelector: isYouTube ? 'ytd-app,ytd-masthead,#background.ytd-masthead,#description,#secondary,ytd-watch-metadata,yt-formatted-string,ytd-comments,ytd-playlist-panel-renderer,ytd-engagement-panel-section-list-renderer,yt-chip-cloud-renderer' : isX ? '#halo-x-layer' : '#app,#video-page-app,#mirror-vdcon,.bili-header__bar,.video-info-title,.video-title,.up-name,.video-page-card-small .title,.video-desc-container,.video-pod,.video-sections-content-list,.base-video-sections,.playlist-container',
   });
   const status = $('status');
   const setStatus = (text) => { if (status.textContent !== text) status.textContent = text; };
-  const setOpen = open => { panelMotion.setOpen(open); HaloUI.place(host,settings,video); };
+  const setOpen = open => { if(open)onboarding?.dismiss(); panelMotion.setOpen(open); HaloUI.place(host,settings,video); };
+  let onboarding;
   const syncHost = () => {
     if (document.hidden || suspended) return;
     const hidden = ((isX || isYouTube) && !video) || !supported() || !!document.fullscreenElement || !!document.webkitFullscreenElement ||
       document.body?.classList.contains('webscreen-fix');
     if (hidden && panelMotion.isOpen) { setOpen(false); panelMotion.settle(); }
     if (host.hidden !== !!hidden) host.hidden = !!hidden;
+    onboarding?.sync();
   };
-  $('toggle').addEventListener('click', () => setOpen(!panelMotion.isOpen));
+  $('toggle').addEventListener('click', () => { onboarding?.dismiss(); setOpen(!panelMotion.isOpen); });
   $('close').addEventListener('click', () => { setOpen(false); $('toggle').focus(); });
   shadow.addEventListener('keydown', (event) => { if (event.key === 'Escape') { setOpen(false); $('toggle').focus(); } });
   const renderControls = () => {
@@ -176,6 +178,7 @@
     }
   };
   function update() {
+    onboarding?.sync();
     if (activeQuality !== settings.quality) { activeQuality = settings.quality; adaptive.reset(); }
     if (document.hidden || suspended) { cancelFrame(); syncLayer(); showRuntime(); return; }
     syncHost();
@@ -303,7 +306,7 @@
     ++preferenceRevision;const previous = settings.enabled; settings = normalize(changes[KEY].newValue); updateControls(previous);
   };
   const runtimeState = () => {
-    if(comparing)return '正在对比原画，个人设置未改变';
+    if(comparing)return '正在查看原画，设置未改变';
     if(!settings.enabled)return '已关闭，调整将在开启后生效';
     if(!ctx)return '浏览器暂时无法创建光效画布，请重试';
     if(video?.error)return '播放器尚未提供可用画面';
@@ -329,17 +332,27 @@
     HaloUI.runtime(shadow, text, retry);
   };
   const localCompare = value => { comparing=value;clearTimeout(compareTimer);if(value)compareTimer=setTimeout(()=>localCompare(false),2500);update(); };
+  onboarding=globalThis.HaloOnboarding?.create({api,shadow,host,
+    ready:()=>!host.hidden && !document.hidden && !suspended && !!video && video.readyState>=2 && (!settings.enabled || (drawn && !layer.hidden)) && inViewport && !policy.isMini?.(video) && !document.pictureInPictureElement && video.webkitPresentationMode!=='picture-in-picture' && (!panelMotion.isOpen || onboarding?.controlsActive),
+    compare:(value,animate)=>{
+      canvas.style.transition=animate?'opacity 250ms cubic-bezier(.2,0,0,1)':'none';
+      canvas.style.opacity=value?'0':'';
+    },enabled:()=>settings.enabled,
+    open:(guided=false)=>{if(guided){panelMotion.setOpen(true);HaloUI.place(host,settings,video);}else setOpen(true);$('tab-light').click();},
+    enable:()=>{if(!settings.enabled)$('enabled').click();},
+  });
   let compareHeartbeat;
   HaloUI.bindPreferences(shadow,{get:()=>settings,
     commit:next=>{++preferenceRevision;if(next.position!==settings.position || next.anchor!==settings.anchor)wave.finish();const previous=settings.enabled;settings=normalize(next);updateControls(previous);persist();},
     compare:value=>{localCompare(value);clearInterval(compareHeartbeat);if(value)compareHeartbeat=setInterval(()=>localCompare(true),1000);return true;},
     retry:retryRendering,place:()=>HaloUI.place(host,settings,video),
   });
-  api.runtime.onMessage.addListener((message, sender, reply) => { if(sender.id && sender.id !== api.runtime.id)return; if(message?.type==='halo-retry'){retryRendering();reply({ok:true});return;} if(message.type==='halo-status'){reply({status:runtimeState(),retry:canRetry()});return;} if(message.type==='halo-compare'){localCompare(!!message.value);reply({ok:true});return;} if (message.type === 'halo-open') { discover(); if (!supported() || !video) { reply({ok:false}); return; } setOpen(true); reply({ok:true}); } });
+  api.runtime.onMessage.addListener((message, sender, reply) => { if(sender.id && sender.id !== api.runtime.id)return; if(message?.type==='halo-start-guide'){setOpen(false);onboarding?.replay();reply({ok:!!onboarding});return;} if(message?.type==='halo-retry'){retryRendering();reply({ok:true});return;} if(message.type==='halo-status'){reply({status:runtimeState(),retry:canRetry()});return;} if(message.type==='halo-compare'){localCompare(!!message.value);reply({ok:true});return;} if (message.type === 'halo-open') { discover(); if (!supported() || !video) { reply({ok:false}); return; } setOpen(true); reply({ok:true}); } });
   const start = async () => {
     const revision = preferenceRevision;
     try { const saved = await api.storage.local.get(KEY); if(revision === preferenceRevision)settings = normalize(saved[KEY]); } catch { /* Defaults work without persistence. */ }
     if (!document.body || !host.isConnected) return;
+    await onboarding?.init();
     wave.setInitial(settings.enabled);
     document.body.prepend(layer);
     document.documentElement.append(host);
@@ -376,7 +389,7 @@
     if (document.hidden || suspended) return;
     discoveryInterval = setInterval(discover, 750);
   };
-  window.addEventListener('pagehide', () => { suspended = true; cancelFrame(); stopDiscovery(); clearInterval(compareHeartbeat); wave.finish(); syncLayer(); }, { capture: true });
+  window.addEventListener('pagehide', () => { suspended = true; onboarding?.suspend(); cancelFrame(); stopDiscovery(); clearInterval(compareHeartbeat); wave.finish(); syncLayer(); }, { capture: true });
   window.addEventListener('pageshow', () => { if (host.isConnected) { suspended = false; startDiscovery(); discover(); update(); } });
   if (document.body) start(); else document.addEventListener('DOMContentLoaded', start, { once: true });
 })();
