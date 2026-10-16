@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
---><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0"><channel><title>Halo Safari 更新</title><item><title>Halo 1.3.1</title><description>全屏透明使用引导，居中标志与实际操作教学；简化控制面板，改善环境光开关与边缘动效。</description><sparkle:version>23</sparkle:version><sparkle:shortVersionString>1.3.1</sparkle:shortVersionString><sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion><enclosure url="https://github.com/Elys1an-Y1san/Halo/releases/download/v1.3.1/Halo-Safari-1.3.1.tar.xz" sparkle:edSignature="JSDym1jjTF0k88QJoAs5qqfkXrRVyw4dWfrEYxQx6khJve7FVcokvmyCc1fnEbZ10dFAJAeKvCUiCBJbKp7wAQ==" length="1840428" type="application/octet-stream"></enclosure></item></channel></rss><!-- sparkle-signatures:
-edSignature: DwJJMXKQxlYd9LFCrKMFp0YH16Gn7TMc9D7JN1pZudzhTRR3Vzzm+fSIbkWOiicX13R3QqDz/sfurH3lPgQBDw==
-length: 1065
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0"><channel><title>Halo Safari 更新</title><item><title>Halo 1.3.3</title><description>修复哔哩哔哩滚动进入小窗时环境光硬切，增加淡入淡出；减少滚动布局、离屏扫描、重复视频采样和设置写入，改善播放与调参流畅度。</description><sparkle:version>25</sparkle:version><sparkle:shortVersionString>1.3.3</sparkle:shortVersionString><sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion><enclosure url="https://github.com/Elys1an-Y1san/Halo/releases/download/v1.3.3/Halo-Safari-1.3.3.tar.xz" sparkle:edSignature="tNDuC9EjHL1op/wFYAsmLVS/NNGb2+a+CR1iB4jDgWz0Peeo569ats9yI1cRXhy9rNgvKkddQ9R688dfkIGJBw==" length="1842188" type="application/octet-stream"></enclosure></item></channel></rss><!-- sparkle-signatures:
+edSignature: pgr7BK2kdlwLMuzPt40EUGclDsDgJNeXUvjjdpN2+IoFcA1yLrfTfD9cMq89xkD+nO/KPSAUofSwray8SjQxCw==
+length: 1125
 -->
