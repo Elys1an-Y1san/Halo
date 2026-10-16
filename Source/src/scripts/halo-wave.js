@@ -155,7 +155,14 @@
             const textOnly = !element.childElementCount && !!element.textContent.trim() && before.image === 'none' && /^(transparent|rgba\(0, 0, 0, 0\))$/.test(before.background);
             surfaces.push({ element, rect, inline: inlinePaint(element), written: {}, before, textOnly, directText: [...element.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim()) });
           };
-          for (const element of elements) { capture(element); if (surfaces.length >= 72) break; }
+          let surfaceScans = 0;
+          // The visible-surface cap alone does not bound work: a long comment
+          // feed can contain thousands of offscreen matches and capture none.
+          // Root/body are first, so uncaptured detail still shares the page reveal.
+          for (const element of elements) {
+            if (++surfaceScans > 240) break;
+            capture(element); if (surfaces.length >= 72) break;
+          }
           let scanned = 0;
           for (const element of animateSurfaces ? document.querySelectorAll('h1,h2,h3,h4,p,a,span,yt-formatted-string') : []) {
             if (surfaces.length >= 72 || ++scanned > 240) break;

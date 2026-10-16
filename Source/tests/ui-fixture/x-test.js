@@ -9,7 +9,7 @@
  check('visible feed video renders',!layer.hidden && pixel()[2]>pixel()[0]);
  check('site theme is preserved',getComputedStyle(document.body).backgroundColor==='rgb(21, 23, 26)' && !document.documentElement.hasAttribute('data-bili-ambient'));
  check('dark theme uses additive glow',layer.style.mixBlendMode==='screen');
- document.body.style.backgroundColor='white';window.dispatchEvent(new Event('resize'));await sleep(100);
+ document.body.style.backgroundColor='white';await sleep(100);
  check('light theme keeps glow visible',layer.style.mixBlendMode==='multiply');
  document.body.style.backgroundColor='#15171a';window.dispatchEvent(new Event('resize'));
  check('glow excludes video rectangle',layer.firstElementChild.style.clipPath.includes('evenodd'));

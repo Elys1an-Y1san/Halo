@@ -10,15 +10,26 @@
   HaloUI.bindUpdates(root, api);
   HaloUI.createPanel(root, { popup: true }).setOpen(true);
   let site = 'youtube', settings = HaloUI.normalize(), revision = 0, statusRevision = 0;
-  let saveQueue = Promise.resolve(), heartbeat, comparedTab;
+  let saving = false, heartbeat, comparedTab;
+  const pendingSaves = new Map();
   const source = crypto.randomUUID();
   const key = () => ({youtube:'halo-youtube-v1',bilibili:'ambientlight-bilibili-v1',x:'halo-x-v1'})[site];
   const siteFor = hostname => ['x.com','www.x.com','twitter.com','www.twitter.com'].includes(hostname) ? 'x' : ['www.bilibili.com','player.bilibili.com','live.bilibili.com'].includes(hostname) ? 'bilibili' : hostname === 'www.youtube.com' ? 'youtube' : null;
   const render = () => { HaloUI.sync(root, settings); HaloUI.place(host, settings, null); };
-  const save = () => {
-    const name = key(), value = {...settings, __haloSource: source};
-    saveQueue = saveQueue.catch(() => {}).then(() => api.storage.local.set({[name]:value}))
-      .catch(() => { $('status').textContent = '设置保存失败，请重试'; });
+  const save = async () => {
+    pendingSaves.set(key(), {...settings, __haloSource: source});
+    if (saving) return;
+    saving = true;
+    try {
+      // Keep only the latest unsent snapshot per site when storage is slower
+      // than slider input. Already dispatched writes still complete in order.
+      while (pendingSaves.size) {
+        const [name, value] = pendingSaves.entries().next().value;
+        pendingSaves.delete(name);
+        try { await api.storage.local.set({[name]:value}); }
+        catch { $('status').textContent = '设置保存失败，请重试'; }
+      }
+    } finally { saving = false; }
   };
   const sendCompare = async value => {
     if (!value) {
@@ -110,7 +121,11 @@
   };
   const preferences = HaloUI.bindPreferences(root, {
     get: () => settings,
-    commit: next => { ++revision; settings = HaloUI.normalize(next); render(); save(); refreshRuntime(); },
+    commit: next => {
+      const runtimeChanged = next.enabled !== settings.enabled || next.quality !== settings.quality;
+      ++revision; settings = HaloUI.normalize(next); render(); save();
+      if (runtimeChanged) refreshRuntime();
+    },
     compare: sendCompare,
     retry: recover,
     place: () => HaloUI.place(host, settings, null),

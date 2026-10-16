@@ -5,6 +5,7 @@
   const policy = globalThis.HaloYouTube || globalThis.HaloX || HaloBilibili;
   const isYouTube = !!globalThis.HaloYouTube;
   const isX = !!globalThis.HaloX;
+  const isBilibili = !isYouTube && !isX;
   const KEY = isYouTube ? 'halo-youtube-v1' : isX ? 'halo-x-v1' : 'ambientlight-bilibili-v1';
   const hostId = isYouTube ? 'halo-youtube-ui' : isX ? 'halo-x-ui' : 'bili-ambient-ui';
   const layerId = isYouTube ? 'halo-youtube-layer' : isX ? 'halo-x-layer' : 'bili-ambient-layer';
@@ -13,7 +14,11 @@
   const defaults = HaloUI.normalize();
   let settings = { ...defaults }, comparing = false, compareTimer, preferenceRevision = 0;
   const normalize = value => HaloUI.normalize(value);
-  const supported = () => policy.supports(new URL(location.href));
+  let routeHref, routeSupported;
+  const supported = () => {
+    if (location.href !== routeHref) { routeHref = location.href; routeSupported = policy.supports(new URL(routeHref)); }
+    return routeSupported;
+  };
   if (document.getElementById(hostId)) return;
 
   const layer = document.createElement('div');
@@ -66,14 +71,20 @@
   $('toggle').addEventListener('click', () => { onboarding?.dismiss(); setOpen(!panelMotion.isOpen); });
   $('close').addEventListener('click', () => { setOpen(false); $('toggle').focus(); });
   shadow.addEventListener('keydown', (event) => { if (event.key === 'Escape') { setOpen(false); $('toggle').focus(); } });
+  let placedPosition, placedAnchor;
   const renderControls = () => {
     HaloUI.sync(shadow, settings);
-    HaloUI.place(host,settings,video);
+    if (placedPosition !== settings.position || placedAnchor !== settings.anchor) {
+      HaloUI.place(host,settings,video); placedPosition = settings.position; placedAnchor = settings.anchor;
+    }
   };
   const updateControls = previous => {
     renderControls();
-    if (previous !== settings.enabled) wave.toggle(settings.enabled, update);
-    else update();
+    if (previous !== settings.enabled) {
+      document.documentElement.removeAttribute('data-bili-motion');
+      wave.toggle(settings.enabled, update);
+    }
+    else update({ settingsOnly: true });
   };
   let saveTimer;
   let saveQueue = Promise.resolve();
@@ -102,27 +113,65 @@
   };
   const visible = () => !suspended && !comparing && wave.renderingEnabled && supported() && !!video && video.isConnected &&
     !policy.isMini?.(video) &&
+    !document.body?.classList.contains('webscreen-fix') &&
     !document.hidden && !document.fullscreenElement && !document.webkitFullscreenElement &&
     !video.webkitDisplayingFullscreen && !document.pictureInPictureElement &&
     video.webkitPresentationMode !== 'picture-in-picture' && inViewport;
   const canDraw = () => !!ctx && visible() && !video.error && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0;
+  let layerActive = false, layerMotion;
   const syncLayer = () => {
     const active = canDraw() && drawn;
-    if (layer.hidden === active) layer.hidden = !active;
-    if (document.documentElement.hasAttribute(themeAttribute) !== active) document.documentElement.toggleAttribute(themeAttribute, active);
-  };
-  const geometry = () => {
-    if (!video) return;
-    geometryDirty = false;
-    const rect = video.getBoundingClientRect();
-    if (isX) {
-      const colors=[document.body,document.documentElement].map(el=>(getComputedStyle(el).backgroundColor.match(/[\d.]+/g)||[]).map(Number));
-      const rgb=colors.find(c=>c.length>=3 && (c.length<4 || c[3]>0)) || [0,0,0];
-      layer.style.mixBlendMode=(rgb[0]*.299+rgb[1]*.587+rgb[2]*.114)>160?'multiply':'screen';
+    if (!isBilibili) {
+      if (layer.hidden === active) layer.hidden = !active;
+      if (document.documentElement.hasAttribute(themeAttribute) !== active) document.documentElement.toggleAttribute(themeAttribute, active);
+      return;
     }
-    if (isX) pictureFrame.style.clipPath = `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${rect.left}px ${rect.top}px, ${rect.left}px ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, ${rect.left}px ${rect.top}px)`;
+    const immediate = document.hidden || suspended || !supported() || !settings.enabled ||
+      !!document.fullscreenElement || !!document.webkitFullscreenElement || comparing || wave.running;
+    if (active === layerActive && !(immediate && layerMotion)) return;
+    layerActive = active;
+    const opacity = layer.hidden ? 0 : Number(getComputedStyle(layer).opacity);
+    layerMotion?.cancel(); layerMotion = null;
+    const animate = !immediate && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.documentElement.toggleAttribute('data-bili-motion', animate);
+    document.documentElement.toggleAttribute(themeAttribute, active);
+    if (!animate) {
+      layer.hidden = !active;
+      layer.style.opacity = active ? '1' : '0';
+      return;
+    }
+    // Keep the last full-size frame while sampling is suspended. Reversals start
+    // at the current compositor opacity and cannot finish an obsolete fade-out.
+    layer.hidden = false;
+    layer.style.opacity = active ? '1' : '0';
+    const motion = layer.animate([{ opacity }, { opacity: active ? 1 : 0 }],
+      { duration: 280, easing: 'ease-out' });
+    layerMotion = motion;
+    motion.onfinish = () => {
+      if (layerMotion !== motion) return;
+      layerMotion = null; layer.hidden = !layerActive;
+      document.documentElement.removeAttribute('data-bili-motion');
+    };
+  };
+  const syncBlend = () => {
+    if (!isX || document.hidden || suspended) return;
+    const colors=[document.body,document.documentElement].map(el=>(getComputedStyle(el).backgroundColor.match(/[\d.]+/g)||[]).map(Number));
+    const rgb=colors.find(c=>c.length>=3 && (c.length<4 || c[3]>0)) || [0,0,0];
+    const blend=(rgb[0]*.299+rgb[1]*.587+rgb[2]*.114)>160?'multiply':'screen';
+    if (layer.style.mixBlendMode !== blend) layer.style.mixBlendMode = blend;
+  };
+  const geometry = (rect) => {
+    if (!video || (isBilibili && (!inViewport || policy.isMini(video)))) return;
+    geometryDirty = false;
+    rect ||= video.getBoundingClientRect();
+    if (isX) {
+      const clip = `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${rect.left}px ${rect.top}px, ${rect.left}px ${rect.bottom}px, ${rect.right}px ${rect.bottom}px, ${rect.right}px ${rect.top}px, ${rect.left}px ${rect.top}px)`;
+      if (pictureFrame.style.clipPath !== clip) pictureFrame.style.clipPath = clip;
+    }
     const geometry = HaloVideo.geometry(rect, video.videoWidth, video.videoHeight, settings);
     if (!geometry) return;
+    geometry.style.transform = `translate3d(${geometry.style.left}, ${geometry.style.top}, 0)`;
+    geometry.style.left = '0px'; geometry.style.top = '0px';
     for (const [property, value] of Object.entries(geometry.style)) {
       if (canvas.style[property] !== value) canvas.style[property] = value;
     }
@@ -177,11 +226,20 @@
       });
     }
   };
-  function update() {
+  function update(options) {
     onboarding?.sync();
     if (activeQuality !== settings.quality) { activeQuality = settings.quality; adaptive.reset(); }
     if (document.hidden || suspended) { cancelFrame(); syncLayer(); showRuntime(); return; }
     syncHost();
+    if (options?.settingsOnly && drawn && visible()) {
+      // Sliders change geometry immediately, without
+      // adding a second, uncapped sampling loop on top of the selected quality.
+      geometryDirty = true;
+      light.adjustBrightness(ctx, settings.brightness);
+      if (geometry()) draw();
+      scheduleFrame(); showRuntime(); return;
+    }
+    syncBlend();
     cancelFrame(); geometryDirty = true; draw(); syncLayer(); scheduleFrame();
     showRuntime(); HaloUI.place(host,settings,video);
   }
@@ -189,8 +247,16 @@
   const onSeek = () => { light.reset(); drawn = false; update(); };
   const onEmpty = () => { light.reset(); drawn = false; failedSource = null; ctx?.clearRect(0, 0, canvas.width, canvas.height); update(); };
   const onLoad = () => { light.reset(); adaptive.reset(); failedSource = null; renderError = false; drawFailures = 0; drawn = false; update(); };
+  const candidateViewport = new Map();
   const intersection = new IntersectionObserver((entries) => {
-    for (const entry of entries) if (entry.target === video) { inViewport = entry.isIntersecting; update(); }
+    let changed = false;
+    for (const entry of entries) {
+      if (!candidateViewport.has(entry.target)) continue;
+      changed ||= candidateViewport.get(entry.target) !== entry.isIntersecting;
+      candidateViewport.set(entry.target, entry.isIntersecting);
+      if (entry.target === video && inViewport !== entry.isIntersecting) { inViewport = entry.isIntersecting; update(); }
+    }
+    if (changed) requestDiscovery();
   });
   const resize = new ResizeObserver(() => update());
   const attach = (next) => {
@@ -201,17 +267,17 @@
       video.removeEventListener('seeked', onSeek);
       video.removeEventListener('emptied', onEmpty);
       video.removeEventListener('loadstart', onLoad);
-      intersection.unobserve(video); resize.unobserve(video);
+      resize.unobserve(video);
     }
     light.reset(); adaptive.reset(); callbackLag = 0;
-    video = next; renderError = false; drawFailures = 0; drawn = false; failedSource = null; observedSource = null; inViewport = true; lastDraw = -Infinity;
+    video = next; renderError = false; drawFailures = 0; drawn = false; failedSource = null; observedSource = null; inViewport = candidateViewport.get(next) ?? true; lastDraw = -Infinity;
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     if (video) {
       for (const event of events) video.addEventListener(event, update);
       video.addEventListener('seeked', onSeek);
       video.addEventListener('emptied', onEmpty);
       video.addEventListener('loadstart', onLoad);
-      intersection.observe(video); resize.observe(video);
+      resize.observe(video);
     }
     update();
   };
@@ -232,8 +298,27 @@
   };
   const discover = () => {
     if (document.hidden || suspended) return;
-    if (!supported()) { attach(null); host.hidden = true; return; }
-    if (candidatesDirty) { videoCandidates = [...document.querySelectorAll('video')]; candidatesDirty = false; }
+    if (!supported()) {
+      attach(null); host.hidden = true;
+      // SPA navigation can remove an entire feed without unloading this script.
+      // Release observers and references instead of retaining detached videos.
+      for (const candidate of candidateViewport.keys()) intersection.unobserve(candidate);
+      candidateViewport.clear(); videoCandidates = []; candidatesDirty = true;
+      playerModeObserver?.disconnect(); modeTargets = [];
+      return;
+    }
+    if (candidatesDirty) {
+      videoCandidates = [...document.querySelectorAll('video')]; candidatesDirty = false;
+      const candidates = new Set(videoCandidates);
+      for (const candidate of candidateViewport.keys()) if (!candidates.has(candidate)) {
+        intersection.unobserve(candidate); candidateViewport.delete(candidate);
+      }
+      for (const candidate of candidates) if (!candidateViewport.has(candidate)) {
+        candidateViewport.set(candidate, null); intersection.observe(candidate);
+      }
+    }
+    // Background changes are checked at discovery frequency, not per sampled frame.
+    syncBlend();
     // Shared ancestors are read once per discovery, never cached across passes.
     // This still detects CSS-only visibility changes without repeated style reads.
     const visibility = new Map();
@@ -247,7 +332,11 @@
       return result;
     };
     let next = null, bestScore = -Infinity;
-    for (const candidate of videoCandidates) {
+    // The observer tracks all candidates; layout/style reads are limited to those
+    // entering the viewport. Retain an offscreen main player for automatic return.
+    let eligible = videoCandidates.filter(candidate => candidateViewport.get(candidate) !== false);
+    if (!eligible.length && !isX && video?.isConnected) eligible = [video];
+    for (const candidate of eligible) {
       const rect = candidate.getBoundingClientRect();
       if (!candidate.isConnected || rect.width < 32 || rect.height < 18) continue;
       if (isX && (rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth)) continue;
@@ -258,6 +347,9 @@
         playing: !candidate.paused && !candidate.ended, ready: candidate.readyState >= 2 });
       if (Number.isFinite(score) && score > bestScore) { next = candidate; bestScore = score; }
     }
+    // A mini player is not a new source. Retain the binding and pixels so it
+    // can fade out without clearing the canvas or resetting the sampler.
+    if (!next && isBilibili && video?.isConnected && policy.isMini(video)) next = video;
     if(next === video) geometryDirty = true;
     attach(next);
     observePlayerMode();
@@ -265,16 +357,17 @@
     if (video && observedSource !== (video.srcObject || video.currentSrc || video.src)) { failedSource = null; renderError = false; drawFailures = 0; drawn = false; update(); }
     // A paused frame needs geometry updates, but no new sampling unless resizing
     // the backing canvas cleared its pixels.
-    if (video?.paused && drawn && geometryDirty && geometry()) draw();
+    if (video?.paused && canDraw() && drawn && geometryDirty && geometry()) draw();
     syncHost();
   };
   HaloUI.bindDrag(shadow, { get:()=>settings, beforeMove:()=>wave.finish(), commit:anchor=>{++preferenceRevision;settings={...settings,anchor};renderControls();persist();} });
   let discoverTimer;
   const requestDiscovery = () => {
-    if (discoverTimer || document.hidden || suspended) return;
+    if (discoverTimer || document.hidden || suspended || !supported()) return;
     discoverTimer = setTimeout(() => { discoverTimer = null; discover(); }, 100);
   };
   const observer = new MutationObserver(records => {
+    if (document.hidden || suspended || !supported()) { candidatesDirty = true; return; }
     for (const record of records) {
       if (host.contains(record.target) || layer.contains(record.target)) continue;
       geometryDirty = true;
@@ -289,15 +382,23 @@
     if (document.hidden || suspended) return;
     if (!records.some(record => record.target.matches(policy.modeSelector || '.bpx-player-container'))) return;
     if (policy.isMini(video)) {
-      cancelFrame(); drawn = false; syncLayer(); wave.finish();
+      cancelFrame(); wave.finish(); syncLayer();
     }
     discover();
+    update();
   });
   let geometryFrame;
   const onScroll = () => {
     if (geometryFrame || document.hidden || suspended) return;
     if (isX || isYouTube) requestDiscovery();
-    geometryFrame = requestAnimationFrame(() => { geometryFrame = null; if (geometry() && video?.paused) draw(); syncLayer(); HaloUI.place(host,settings,video); });
+    if (!video || policy.isMini?.(video) || !inViewport) return;
+    geometryFrame = requestAnimationFrame(() => {
+      geometryFrame = null;
+      const rect = video?.getBoundingClientRect();
+      if (visible() && geometry(rect) && video?.paused) draw();
+      syncLayer();
+      if (settings.position === 'auto' && !settings.anchor) HaloUI.place(host,settings,video,rect);
+    });
   };
   const storageListener = (changes, area) => {
     if (area !== 'local' || !changes[KEY]) return;
@@ -311,7 +412,7 @@
     if(!ctx)return '浏览器暂时无法创建光效画布，请重试';
     if(video?.error)return '播放器尚未提供可用画面';
     if(failedSource !== null)return '暂时无法读取视频画面，请重试';
-    if(!isX && !isYouTube && !video && document.querySelector('.bpx-player-container[data-screen="mini"] video'))return '小窗播放中，返回主播放器后恢复环境光';
+    if(isBilibili && (policy.isMini(video) || (!video && document.querySelector('.bpx-player-container[data-screen="mini"] video'))))return '小窗播放中，返回主播放器后恢复环境光';
     if(!supported())return '当前页面不支持环境光，请打开视频播放页';
     if(!video)return '等待视频画面，请开始播放';
     if(video.readyState<2)return '等待视频画面加载';
@@ -359,11 +460,19 @@
     renderControls();
     observer.observe(document.body, { childList: true, subtree: true });
     // Web fullscreen only changes a body class; it does not fire fullscreenchange.
-    new MutationObserver(syncHost).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    let webFullscreen = document.body.classList.contains('webscreen-fix');
+    const pageStyleObserver = new MutationObserver(() => {
+      const next = document.body.classList.contains('webscreen-fix');
+      if (webFullscreen !== next) { webFullscreen = next; if (next) wave.finish(); update(); }
+      else { syncHost(); syncBlend(); }
+    });
+    pageStyleObserver.observe(document.body, { attributes: true, attributeFilter: isX ? ['class', 'style'] : ['class'] });
+    if (isX) pageStyleObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style'] });
     api.storage.onChanged.addListener(storageListener);
     document.addEventListener('visibilitychange', () => {
       stopDiscovery();
-      if (!document.hidden) { startDiscovery(); discover(); }
+      observer.disconnect(); candidatesDirty = true;
+      if (!document.hidden) { observer.observe(document.body, { childList: true, subtree: true }); startDiscovery(); discover(); }
       update();
     });
     document.addEventListener('fullscreenchange', update);
@@ -389,7 +498,7 @@
     if (document.hidden || suspended) return;
     discoveryInterval = setInterval(discover, 750);
   };
-  window.addEventListener('pagehide', () => { suspended = true; onboarding?.suspend(); cancelFrame(); stopDiscovery(); clearInterval(compareHeartbeat); wave.finish(); syncLayer(); }, { capture: true });
-  window.addEventListener('pageshow', () => { if (host.isConnected) { suspended = false; startDiscovery(); discover(); update(); } });
+  window.addEventListener('pagehide', () => { suspended = true; onboarding?.suspend(); cancelFrame(); stopDiscovery(); observer.disconnect(); candidatesDirty = true; clearInterval(compareHeartbeat); wave.finish(); syncLayer(); }, { capture: true });
+  window.addEventListener('pageshow', () => { if (host.isConnected) { suspended = false; observer.observe(document.body, { childList: true, subtree: true }); startDiscovery(); discover(); update(); } });
   if (document.body) start(); else document.addEventListener('DOMContentLoaded', start, { once: true });
 })();

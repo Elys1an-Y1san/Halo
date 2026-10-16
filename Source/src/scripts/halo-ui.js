@@ -228,16 +228,17 @@ header,#toggle,#panel-aura{display:none}
       input.value = settings[key];
       const number = root.getElementById(`${key}-number`);
       if (number && root.activeElement !== number) number.value = settings[key];
-      input.style.setProperty('--fill', `${(settings[key] - Number(input.min)) / (Number(input.max) - Number(input.min)) * 100}%`);
-      input.setAttribute('aria-valuetext', `${settings[key]}%`);
+      const fill = `${(settings[key] - Number(input.min)) / (Number(input.max) - Number(input.min)) * 100}%`;
+      if (input.style.getPropertyValue('--fill') !== fill) input.style.setProperty('--fill', fill);
+      if (input.getAttribute('aria-valuetext') !== `${settings[key]}%`) input.setAttribute('aria-valuetext', `${settings[key]}%`);
       root.getElementById(`${key}-value`).value = String(settings[key]);
     }
     root.querySelectorAll('[data-preset]').forEach(button => {
       const selected = Object.entries(this.presets[button.dataset.preset]).every(([key, value]) => settings[key] === value);
-      button.setAttribute('aria-pressed', String(selected));
+      if (button.getAttribute('aria-pressed') !== String(selected)) button.setAttribute('aria-pressed', String(selected));
       if (selected) mode = names[button.dataset.preset];
     });
-    root.getElementById('mode-label').textContent = mode;
+    if (root.getElementById('mode-label').textContent !== mode) root.getElementById('mode-label').textContent = mode;
     root.getElementById('quality').value = settings.quality || 'auto';
     root.getElementById('position').value = settings.anchor ? 'custom' : settings.position || 'auto';
     const power = root.getElementById('power');
@@ -322,7 +323,7 @@ HaloUI.runtime = function(root, text, retry = false) {
   button.hidden=!retry;
   button.textContent=typeof retry==='string'?retry:'重新采样';
 };
-HaloUI.placePanel = function(host, settings, video) {
+HaloUI.placePanel = function(host, settings, video, videoRect) {
   if(document.body?.dataset.halo==='popup' || document.documentElement.hasAttribute('data-halo-wave'))return;
   if(host.__haloDragAnchor)settings={...settings,anchor:host.__haloDragAnchor};
   const edge=innerWidth<=480?16:24, width=Math.min(336,innerWidth-edge*2);
@@ -350,7 +351,7 @@ HaloUI.placePanel = function(host, settings, video) {
   if(panel?.style)for(const property of ['left','right','top','bottom','max-height'])panel.style.removeProperty(property);
   let side=settings.position==='left'?'left':'right',top=false;
   if(settings.position==='auto' && video){
-    const r=video.getBoundingClientRect();
+    const r=videoRect || video.getBoundingClientRect();
     side=r.left>innerWidth-r.right?'left':'right';
     const x=side==='left'?edge:innerWidth-edge-width;
     const panel=host.shadowRoot?.getElementById('panel');
@@ -363,8 +364,8 @@ HaloUI.placePanel = function(host, settings, video) {
   host.style.top=top?`${edge}px`:'auto';host.style.bottom=top?'auto':`${edge}px`;
 };
 
-HaloUI.place = function(host,settings,video) {
-  this.placePanel(host,settings,video);
+HaloUI.place = function(host,settings,video,videoRect) {
+  this.placePanel(host,settings,video,videoRect);
   const panel=host.shadowRoot?.getElementById('panel'),aura=host.shadowRoot?.getElementById('panel-aura');
   if(!panel || !aura)return;
   for(const name of ['left','right','top','bottom','max-height']){

@@ -51,27 +51,37 @@ globalThis.HaloVideo = {
   createLightProcessor() {
     const probe = document.createElement('canvas');
     probe.width = 16; probe.height = 9;
-    let probeContext, readable = true, lastProbe = -Infinity, lastFrame = null, gain = 1, target = 1, lastBrightness = null;
+    let probeContext, pixels, readable = true, lastProbe = -Infinity, lastFrame = null, gain = 1, target = 1, lastBrightness = null;
     try { probeContext = probe.getContext('2d', { willReadFrequently: true }); } catch { /* Drawing can still work without readback. */ }
     return {
       get limited() { return !probeContext || !readable; },
       reset() {
         // Resizing also clears the origin-tainted flag when switching media.
-        probe.width = 16; readable = true; lastProbe = -Infinity; lastFrame = null; gain = target = 1; lastBrightness = null;
+        probe.width = 16; pixels = null; readable = true; lastProbe = -Infinity; lastFrame = null; gain = target = 1; lastBrightness = null;
+      },
+      adjustBrightness(context, brightness) {
+        if (brightness === lastBrightness) return;
+        // Apply the exposure cap in the same turn as the CSS brightness change,
+        // even when the next video sample is deferred to respect the FPS limit.
+        if (pixels) target = HaloVideo.exposure(pixels, brightness);
+        gain = target; lastBrightness = brightness;
+        const tone = gain.toFixed(4);
+        if (context.canvas.style.getPropertyValue('--halo-tone') !== tone) context.canvas.style.setProperty('--halo-tone', tone);
       },
       draw(context, video, now, brightness, fresh = false) {
         const brightnessChanged = brightness !== lastBrightness;
-        if (probeContext && readable && (fresh || brightnessChanged || now - lastProbe >= 100)) {
+        if (probeContext && readable && (fresh || now - lastProbe >= 100)) {
           lastProbe = now;
           try {
             probeContext.drawImage(video, 0, 0, 16, 9);
-            target = HaloVideo.exposure(probeContext.getImageData(0, 0, 16, 9).data, brightness);
+            pixels = probeContext.getImageData(0, 0, 16, 9).data;
+            target = HaloVideo.exposure(pixels, brightness);
           } catch {
             // Some playable cross-origin media disallows pixel reads. Never retry
             // readback every frame or disable otherwise drawable ambient light.
-            readable = false; target = 1;
+            readable = false; pixels = null; target = 1;
           }
-        }
+        } else if (brightnessChanged && pixels) target = HaloVideo.exposure(pixels, brightness);
         const initial = fresh || lastFrame === null || now - lastFrame > 500;
         const alpha = initial ? 1 : HaloVideo.blend(now - lastFrame);
         context.globalAlpha = alpha;

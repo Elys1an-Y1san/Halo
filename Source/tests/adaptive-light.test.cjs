@@ -50,3 +50,23 @@ test('occasional expensive frames do not strand a healthy session in the low tie
  for(let now=1100;now<=17000;now+=100)q.observe(now,now%2000===0?8:1,0);
  assert.equal(q.fps,30);
 });
+
+test('brightness edits reuse recent exposure pixels without increasing GPU readback frequency',()=>{
+ let reads=0;const probe={width:0,height:0,getContext:()=>({drawImage(){},getImageData(){reads++;return {data:pixels(255)};}})};
+ context.document={createElement:()=>probe};const processor=light.createLightProcessor();
+ let tone;const ctx={canvas:{width:320,height:180,style:{getPropertyValue(){return tone;},setProperty(k,v){tone=v;}}},drawImage(){}};
+ processor.draw(ctx,{},0,100,true);const initial=Number(tone);
+ processor.draw(ctx,{},33,180);assert.equal(reads,1);assert(Number(tone)<initial);
+ processor.draw(ctx,{},66,120);assert.equal(reads,1);
+ processor.draw(ctx,{},100,140);assert.equal(reads,2);
+ processor.reset();processor.draw(ctx,{},110,100,true);assert.equal(reads,3);
+});
+
+test('deferred sampling still applies the bright-scene exposure cap before CSS brightness changes',()=>{
+ let reads=0,draws=0,tone;
+ context.document={createElement:()=>({width:0,height:0,getContext:()=>({drawImage(){},getImageData(){reads++;return {data:pixels(255)};}})})};
+ const processor=light.createLightProcessor(),ctx={canvas:{width:320,height:180,style:{getPropertyValue(){return tone;},setProperty(k,v){tone=v;}}},drawImage(){draws++;}};
+ processor.draw(ctx,{},0,100,true);processor.adjustBrightness(ctx,180);
+ assert(Number(tone)*1.8<.851);assert.equal(reads,1);assert.equal(draws,1);
+ processor.draw(ctx,{},33,180);assert.equal(reads,1);assert.equal(draws,2);
+});

@@ -9,3 +9,8 @@ html[data-bili-ambient] #app,html[data-bili-ambient] #video-page-app,html[data-b
 html[data-bili-ambient] .bili-header__bar{background:#151921b8!important;backdrop-filter:blur(16px)}
 html[data-bili-ambient] :is(.video-info-title,.video-title,.up-name,.video-page-card-small .title){color:var(--text1)!important}
 html[data-bili-ambient] :is(.video-desc-container,.video-pod,.video-sections-content-list,.base-video-sections,.playlist-container){background:#181d2799!important;border-radius:8px}
+
+/* Only colors transition; layout and the blurred canvas are never animated. */
+html[data-bili-motion],html[data-bili-motion] :is(body,#app,#video-page-app,#mirror-vdcon,.bili-header__bar,.video-info-title,.video-title,.up-name,.video-page-card-small .title,.video-desc-container,.video-pod,.video-sections-content-list,.base-video-sections,.playlist-container){transition:background-color 280ms ease-out,color 280ms ease-out}
+html[data-bili-motion] body{isolation:isolate}
+@media(prefers-reduced-motion:reduce){html[data-bili-motion],html[data-bili-motion] :is(body,#app,#video-page-app,#mirror-vdcon,.bili-header__bar,.video-info-title,.video-title,.up-name,.video-page-card-small .title,.video-desc-container,.video-pod,.video-sections-content-list,.base-video-sections,.playlist-container){transition:none}}

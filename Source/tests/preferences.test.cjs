@@ -69,3 +69,12 @@ test('change-only range input applies and saves exactly once',async()=>{
  const h=setup();await tick();const input=h.element('brightness');input.value='160';input.onchange();input.oninput();await tick();
  assert.equal(h.element('brightness').value,'160');assert.equal(h.writes.length,1);h.writes[0].resolve();await tick();assert.equal(h.writes.length,1);
 });
+
+test('slow storage coalesces obsolete slider snapshots while retaining the newest value',async()=>{
+ const h=setup();await tick();h.set('brightness',20);await tick();
+ for(let value=21;value<=180;value++)h.set('brightness',value);
+ assert.equal(h.writes.length,1);
+ h.writes[0].resolve();await tick();assert.equal(h.writes.length,2);
+ assert.equal(h.writes[1].value['halo-youtube-v1'].brightness,180);
+ h.writes[1].resolve();await tick();assert.equal(h.writes.length,2);
+});
