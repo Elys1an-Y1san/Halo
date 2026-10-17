@@ -429,7 +429,7 @@ AA0000000000000000000003 /* update.html in Resources */,
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -443,7 +443,7 @@ AA0000000000000000000003 /* update.html in Resources */,
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.3.3;
+				MARKETING_VERSION = 1.3.4;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -463,7 +463,7 @@ AA0000000000000000000003 /* update.html in Resources */,
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -477,7 +477,7 @@ AA0000000000000000000003 /* update.html in Resources */,
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 1.3.3;
+				MARKETING_VERSION = 1.3.4;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -503,7 +503,7 @@ AA0000000000000000000003 /* update.html in Resources */,
 MACOSX_DEPLOYMENT_TARGET = 12.0;
 CODE_SIGN_ENTITLEMENTS = Halo/Halo.entitlements;
 FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -519,7 +519,7 @@ FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.3.3;
+				MARKETING_VERSION = 1.3.4;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -548,7 +548,7 @@ FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
 MACOSX_DEPLOYMENT_TARGET = 12.0;
 CODE_SIGN_ENTITLEMENTS = Halo/Halo.entitlements;
 FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 26;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
@@ -564,7 +564,7 @@ FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PROJECT_DIR)/../Frameworks");
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.3.3;
+				MARKETING_VERSION = 1.3.4;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,

@@ -7,6 +7,14 @@ html[data-halo-youtube] body{background:transparent!important;isolation:isolate}
 html[data-halo-youtube] :is(ytd-app,ytd-watch-flexy,ytd-watch-grid,ytd-page-manager){background:transparent!important}
 html[data-halo-youtube] :is(ytd-masthead,#background.ytd-masthead){background:#151921e8!important}
 html[data-halo-youtube] :is(#description.ytd-watch-metadata,ytd-playlist-panel-renderer){background:#181d2799!important}
+/* The site's light theme redeclares these tokens on ytd-app. Keep the
+ * translucent playlist readable without changing YouTube's theme preference. */
+html[data-halo-youtube] ytd-playlist-panel-renderer{color-scheme:dark;--yt-spec-text-primary:#f1f3f7;--yt-spec-text-secondary:#bdc5d0;--yt-spec-icon-active-other:#f1f3f7;--yt-spec-icon-inactive:#bdc5d0;--yt-spec-badge-chip-background:#ffffff16;--yt-spec-10-percent-layer:#ffffff16}
+/* Current YouTube also assigns light-theme colors directly to leaf nodes. */
+html[data-halo-youtube] ytd-playlist-panel-renderer :is(.title,#video-title,yt-icon,button){color:#f1f3f7!important}
+html[data-halo-youtube] ytd-playlist-panel-renderer :is(.publisher,.publisher a,.byline,.byline a,#byline,#index,.index-message){color:#bdc5d0!important}
+html[data-halo-youtube] ytd-playlist-panel-video-renderer[selected]{background:#ffffff16!important}
+html[data-halo-youtube] ytd-playlist-panel-video-renderer:hover{background:#ffffff38!important}
 /* YouTube paints these inner surfaces independently of the playlist shell.
  * Keep item selection, hover, controls and thumbnail overlays intact. */
 html[data-halo-youtube] ytd-playlist-panel-renderer :is(.header.ytd-playlist-panel-renderer,#items.ytd-playlist-panel-renderer){background:transparent!important}
