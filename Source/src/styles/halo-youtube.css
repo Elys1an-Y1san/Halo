@@ -7,5 +7,8 @@ html[data-halo-youtube] body{background:transparent!important;isolation:isolate}
 html[data-halo-youtube] :is(ytd-app,ytd-watch-flexy,ytd-watch-grid,ytd-page-manager){background:transparent!important}
 html[data-halo-youtube] :is(ytd-masthead,#background.ytd-masthead){background:#151921e8!important}
 html[data-halo-youtube] :is(#description.ytd-watch-metadata,ytd-playlist-panel-renderer){background:#181d2799!important}
+/* YouTube paints these inner surfaces independently of the playlist shell.
+ * Keep item selection, hover, controls and thumbnail overlays intact. */
+html[data-halo-youtube] ytd-playlist-panel-renderer :is(.header.ytd-playlist-panel-renderer,#items.ytd-playlist-panel-renderer){background:transparent!important}
 /* The website's own cinematic backdrop would otherwise compete with this layer. */
 html[data-halo-youtube] #cinematics{visibility:hidden!important}
