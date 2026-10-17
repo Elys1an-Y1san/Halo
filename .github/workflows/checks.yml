@@ -29,3 +29,16 @@ jobs:
         working-directory: Source
       - run: npm run lint
         working-directory: Source
+  youtube-playlist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.61.1
+        working-directory: Source
+      - run: npx playwright install --with-deps chromium
+        working-directory: Source
+      - run: node tests/youtube-playlist-browser.cjs
+        working-directory: Source
